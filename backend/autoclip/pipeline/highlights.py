@@ -12,6 +12,7 @@ buys back the clips that live on the seams.
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import logging
 from collections.abc import Callable
 
@@ -26,6 +27,10 @@ log = logging.getLogger(__name__)
 #: Window length and overlap in seconds of speech.
 WINDOW_S = 8 * 60
 OVERLAP_S = 60
+#: Local models get shorter windows: half the context per request keeps an 8B
+#: model plus its context on a 6 GB GPU instead of spilling onto the CPU, and
+#: smaller models judge a short span better than a long one anyway.
+LOCAL_WINDOW_S = 4 * 60
 
 #: Two candidates covering this much of the same words are the same clip.
 DEDUPE_IOU = 0.4
@@ -126,26 +131,44 @@ async def detect(
     *,
     job_id: str,
     silences: list[Silence] | None = None,
-    on_progress: Callable[[float], None] | None = None,
+    on_progress: Callable[..., None] | None = None,
+    cancelled: Callable[[], bool] | None = None,
 ) -> list[Clip]:
     """Run detection across the whole transcript and return ranked clips."""
-    windows = build_windows(transcript)
+    is_local = provider.name == "ollama"
+    windows = build_windows(transcript, window_s=LOCAL_WINDOW_S if is_local else WINDOW_S)
     if not windows:
         raise HighlightError("The transcript is empty, so there is nothing to clip.")
 
     log.info("Detecting highlights across %d window(s) with %s.", len(windows), provider.name)
 
-    concurrency = LOCAL_CONCURRENCY if provider.name == "ollama" else HOSTED_CONCURRENCY
+    concurrency = LOCAL_CONCURRENCY if is_local else HOSTED_CONCURRENCY
     semaphore = asyncio.Semaphore(concurrency)
     completed = 0
+    started = 0
+    found = 0
+    errors: list[Exception] = []
     lock = asyncio.Lock()
 
     async def run_window(window: TranscriptWindow) -> list[ClipCandidate]:
-        nonlocal completed
+        nonlocal completed, started, found
         async with semaphore:
+            if cancelled is not None and cancelled():
+                return []
+            async with lock:
+                started += 1
+                position = started
+            if on_progress:
+                on_progress(
+                    completed / len(windows),
+                    f"Section {position} of {len(windows)} · {_model_label(provider)}"
+                    f" · {found} candidate(s) so far",
+                )
             try:
-                result = await provider.detect_highlights(window, config)
-                candidates = result.clips
+                result = await _await_unless_cancelled(
+                    provider.detect_highlights(window, config), cancelled
+                )
+                candidates = result.clips if result is not None else []
             except Exception as exc:
                 # One bad window shouldn't lose the whole video's other windows.
                 log.warning(
@@ -154,17 +177,36 @@ async def detect(
                     window.last_word,
                     exc,
                 )
+                errors.append(exc)
                 candidates = []
             async with lock:
                 completed += 1
+                found += len(candidates)
                 if on_progress:
-                    on_progress(completed / len(windows))
+                    on_progress(
+                        completed / len(windows),
+                        f"{completed} of {len(windows)} sections done"
+                        f" · {found} candidate(s) so far",
+                    )
             return candidates
 
     results = await asyncio.gather(*(run_window(w) for w in windows))
+    if cancelled is not None and cancelled():
+        raise HighlightError("Highlight detection cancelled.")
     candidates = [c for group in results for c in group]
 
+    if not candidates and errors and len(errors) == len(windows):
+        # Every window errored: this is a provider problem (bad key, unknown
+        # model, server down, truncated context), not a video with no
+        # highlights. Say what actually went wrong.
+        raise HighlightError(
+            f"All {len(windows)} transcript window(s) failed with {provider.name}. "
+            f"First error: {errors[0]}"
+        )
+
     if not candidates:
+        if errors:
+            log.warning("%d of %d window(s) failed.", len(errors), len(windows))
         raise HighlightError(
             "No clips were found. This can mean the video genuinely has no "
             "self-contained highlights, or that the model struggled with the "
@@ -173,6 +215,32 @@ async def detect(
 
     log.info("Providers proposed %d raw candidates.", len(candidates))
     return build_clips(transcript, candidates, config, job_id=job_id, silences=silences or [])
+
+
+def _model_label(provider: LLMProvider) -> str:
+    model = getattr(provider, "model", "") or ""
+    return f"{provider.name} {model}".strip()
+
+
+async def _await_unless_cancelled(coro, cancelled: Callable[[], bool] | None, poll_s: float = 1.0):
+    """Await ``coro``, abandoning it within ``poll_s`` of a cancel request.
+
+    A local model can spend minutes on one window. Cancelling the task closes
+    the HTTP connection, which makes Ollama stop generating, so a cancel frees
+    the queue and the GPU promptly. Returns None when cancelled.
+    """
+    task = asyncio.ensure_future(coro)
+    if cancelled is None:
+        return await task
+    while True:
+        done, _ = await asyncio.wait({task}, timeout=poll_s)
+        if done:
+            return task.result()
+        if cancelled():
+            task.cancel()
+            with contextlib.suppress(asyncio.CancelledError, Exception):
+                await task
+            return None
 
 
 def build_clips(

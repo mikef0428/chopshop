@@ -21,6 +21,9 @@ export function useJobStream(jobId: string | undefined) {
   const [job, setJob] = useState<Job | null>(null)
   const [progress, setProgress] = useState<StageProgress | null>(null)
   const [connected, setConnected] = useState(false)
+  // When the last progress event arrived, so the UI can show the job is alive
+  // even while a long step (a slow model section) hasn't moved the percentage.
+  const [lastProgressAt, setLastProgressAt] = useState<number | null>(null)
   const sourceRef = useRef<EventSource | null>(null)
 
   useEffect(() => {
@@ -55,6 +58,7 @@ export function useJobStream(jobId: string | undefined) {
 
     source.addEventListener('progress', (event) => {
       const data = JSON.parse((event as MessageEvent).data)
+      setLastProgressAt(Date.now())
       setProgress({
         stage: data.stage,
         stageProgress: data.stage_progress,
@@ -91,5 +95,5 @@ export function useJobStream(jobId: string | undefined) {
     }
   }, [jobId])
 
-  return { job, progress, connected, setJob }
+  return { job, progress, connected, lastProgressAt, setJob }
 }

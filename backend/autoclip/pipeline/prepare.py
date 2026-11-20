@@ -74,6 +74,9 @@ def generate_thumbnails(
     *,
     interval_s: int = THUMBNAIL_INTERVAL_S,
     width: int = THUMBNAIL_WIDTH,
+    duration_s: float | None = None,
+    on_progress: Callable[[float], None] | None = None,
+    cancelled: Callable[[], bool] | None = None,
 ) -> list[Path]:
     """Write one thumbnail every ``interval_s`` seconds for UI scrubbing.
 
@@ -86,6 +89,13 @@ def generate_thumbnails(
     try:
         ffmpeg.run(
             [
+                # Decode keyframes only. A thumbnail every few seconds doesn't
+                # need every frame, and decoding all of them is what made this
+                # step take ~8 minutes on an hour of 1080p60. Keyframes in web
+                # video land every few seconds, so the fps filter still gets a
+                # frame near each sample point — at a fraction of the decode cost.
+                "-skip_frame",
+                "nokey",
                 "-i",
                 str(source),
                 "-vf",
@@ -93,7 +103,10 @@ def generate_thumbnails(
                 "-q:v",
                 "5",
                 str(pattern),
-            ]
+            ],
+            total_duration_s=duration_s,
+            on_progress=on_progress,
+            cancelled=cancelled,
         )
     except ffmpeg.FFmpegError:
         # Audio-only input has no video stream to sample.

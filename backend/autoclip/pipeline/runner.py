@@ -160,9 +160,25 @@ class PipelineRunner:
         self._completed_weight += STAGE_WEIGHTS[stage]
         self._emit(stage, 1.0, overall=self._completed_weight)
 
-    def _stage_progress(self, stage: Stage) -> Callable[[float], None]:
-        def report(fraction: float) -> None:
-            self._emit(stage, max(0.0, min(1.0, fraction)))
+    def _stage_progress(
+        self,
+        stage: Stage,
+        *,
+        start: float = 0.0,
+        end: float = 1.0,
+        describe: Callable[[float], str] | None = None,
+    ) -> Callable[..., None]:
+        """Progress callback for a stage, or for a ``start``..``end`` slice of it.
+
+        ``describe`` turns the sub-step's own fraction into the status line shown
+        under the stage, so the UI says what is happening rather than a bare %.
+        Callers may also pass a message directly as the second argument.
+        """
+
+        def report(fraction: float, message: str | None = None) -> None:
+            fraction = max(0.0, min(1.0, fraction))
+            text = message or (describe(fraction) if describe else "")
+            self._emit(stage, start + (end - start) * fraction, text)
 
         return report
 
@@ -184,6 +200,14 @@ class PipelineRunner:
             store.update_job(self.job.id, status="cancelled", finished_at=utcnow(), progress=0.0)
             raise
         except Exception as exc:
+            if self._is_cancelled():
+                # A stage that noticed the cancel raised its own error type
+                # (transcription raises TranscriptionError). It's still a
+                # cancel, not a failure — record it as one.
+                store.update_job(
+                    self.job.id, status="cancelled", finished_at=utcnow(), progress=0.0
+                )
+                raise JobCancelled("Job cancelled.") from exc
             log.exception("Job %s failed.", self.job.id)
             store.update_job(self.job.id, status="failed", error=str(exc), finished_at=utcnow())
             raise
@@ -206,11 +230,26 @@ class PipelineRunner:
                 source_path,
                 self.workspace.audio,
                 duration_s=self.source.duration_s,
-                on_progress=self._stage_progress(stage),
+                on_progress=self._stage_progress(
+                    stage, end=0.3, describe=lambda f: f"Extracting audio · {f:.0%}"
+                ),
             )
 
         if self.source.has_video and not self.workspace.thumbnails.exists():
-            prepare.generate_thumbnails(source_path, self.workspace.thumbnails)
+            # Even keyframe-only decoding takes a while on a long video — report
+            # it, or the bar sits still and looks hung.
+            self._emit(stage, 0.3, "Making preview thumbnails")
+            prepare.generate_thumbnails(
+                source_path,
+                self.workspace.thumbnails,
+                duration_s=self.source.duration_s,
+                on_progress=self._stage_progress(
+                    stage,
+                    start=0.3,
+                    describe=lambda f: f"Making preview thumbnails · {f:.0%}",
+                ),
+                cancelled=self._is_cancelled,
+            )
 
         self._finish_stage(stage)
         return self.workspace.audio
@@ -225,12 +264,24 @@ class PipelineRunner:
             self._finish_stage(stage)
             return transcript
 
-        self._emit(stage, 0.0, "Transcribing")
+        total = self.source.duration_s or 0.0
+        self._emit(
+            stage,
+            0.0,
+            f"Loading Whisper '{self.settings.whisper.model}' (first use downloads it)",
+        )
         transcript = transcribe.transcribe(
             audio,
             self.settings.whisper,
             duration_s=self.source.duration_s,
-            on_progress=self._stage_progress(stage),
+            on_progress=self._stage_progress(
+                stage,
+                describe=lambda f: (
+                    f"Transcribing · {_clock(f * total)} of {_clock(total)}"
+                    if total
+                    else "Transcribing"
+                ),
+            ),
             cancelled=self._is_cancelled,
         )
 
@@ -284,13 +335,17 @@ class PipelineRunner:
         provider = build_provider(provider_name, self.settings)
         config = detection_config(self.settings)
 
-        self._emit(stage, 0.0, f"Finding highlights with {provider.name}")
+        model = getattr(provider, "model", "") or ""
+        self._emit(
+            stage, 0.0, f"Finding highlights with {provider.name}" + (f" · {model}" if model else "")
+        )
         clips = await highlights.detect(
             transcript,
             provider,
             config,
             job_id=self.job.id,
             silences=silences,
+            cancelled=self._is_cancelled,
             on_progress=self._stage_progress(stage),
         )
 
@@ -449,3 +504,11 @@ async def run_job(
 
 def _run_sync(runner: PipelineRunner) -> list[Clip]:
     return asyncio.run(runner.run())
+
+
+def _clock(seconds: float) -> str:
+    """Format seconds as H:MM:SS or M:SS for status lines."""
+    seconds = int(max(0.0, seconds))
+    hours, rem = divmod(seconds, 3600)
+    minutes, secs = divmod(rem, 60)
+    return f"{hours}:{minutes:02d}:{secs:02d}" if hours else f"{minutes}:{secs:02d}"

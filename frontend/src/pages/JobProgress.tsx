@@ -18,7 +18,8 @@ const STAGES = [
 export function JobProgress() {
   const { jobId } = useParams()
   const navigate = useNavigate()
-  const { job, progress } = useJobStream(jobId)
+  const { job, progress, connected, lastProgressAt } = useJobStream(jobId)
+  const now = useNow(job?.status === 'running')
   const [cancelling, setCancelling] = useState(false)
   const [actionError, setActionError] = useState<Error | null>(null)
 
@@ -35,7 +36,12 @@ export function JobProgress() {
   }
 
   const activeIndex = STAGES.findIndex((s) => s.key === job.current_stage)
-  const percent = Math.round((progress?.overall ?? job.progress) * 100)
+  const overall = (progress?.overall ?? job.progress) * 100
+  // One decimal while running: a long stage advances in small steps, and a
+  // whole-number readout hides them, which reads as "stuck".
+  const percent = job.status === 'running' && overall < 100 ? overall.toFixed(1) : Math.round(overall)
+  const activeStage = activeIndex >= 0 ? STAGES[activeIndex] : null
+  const sinceUpdate = lastProgressAt ? Math.max(0, Math.round((now - lastProgressAt) / 1000)) : null
 
   const cancel = async () => {
     setCancelling(true)
@@ -98,6 +104,33 @@ export function JobProgress() {
           )}
         </div>
       </div>
+
+      {(job.status === 'running' || job.status === 'queued') && (
+        <div className="mt-6 max-w-3xl text-sm leading-relaxed">
+          <p className="text-ink-100">
+            {job.status === 'queued'
+              ? 'Waiting in the queue — another job is using the GPU.'
+              : activeStage
+                ? `${activeStage.label}: ${progress?.message ?? activeStage.note}`
+                : 'Starting…'}
+          </p>
+          {job.status === 'running' && (
+            <p className="numeric mt-1 text-xs text-ink-500">
+              {activeStage && progress
+                ? `This stage ${Math.round(progress.stageProgress * 100)}% · `
+                : ''}
+              {sinceUpdate === null
+                ? connected
+                  ? 'Waiting for the first update from this stage…'
+                  : 'Connecting…'
+                : `Last update ${formatAgo(sinceUpdate)} ago`}
+              {sinceUpdate !== null && sinceUpdate > 120 && progress?.stage === 'highlights'
+                ? ' — local models can take several minutes per section'
+                : ''}
+            </p>
+          )}
+        </div>
+      )}
 
       {job.error && (
         <div className="mt-8 max-w-3xl">
@@ -193,4 +226,21 @@ export function JobProgress() {
       </ol>
     </div>
   )
+}
+
+/** Current time, re-rendered every second while ``active``. */
+function useNow(active: boolean) {
+  const [now, setNow] = useState(() => Date.now())
+  useEffect(() => {
+    if (!active) return
+    const timer = setInterval(() => setNow(Date.now()), 1000)
+    return () => clearInterval(timer)
+  }, [active])
+  return now
+}
+
+function formatAgo(seconds: number) {
+  if (seconds < 60) return `${seconds}s`
+  const minutes = Math.floor(seconds / 60)
+  return `${minutes}m ${String(seconds % 60).padStart(2, '0')}s`
 }

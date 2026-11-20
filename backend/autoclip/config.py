@@ -100,7 +100,7 @@ class Settings(BaseModel):
     active_provider: ProviderName = "anthropic"
     providers: dict[str, ProviderSettings] = Field(
         default_factory=lambda: {
-            "anthropic": ProviderSettings(model="claude-sonnet-5"),
+            "anthropic": ProviderSettings(model="claude-sonnet-5-5"),
             "openai": ProviderSettings(model="gpt-4o"),
             "gemini": ProviderSettings(model="gemini-2.0-flash"),
             "ollama": ProviderSettings(model="", base_url="http://localhost:11434"),

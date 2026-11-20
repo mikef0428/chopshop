@@ -33,6 +33,24 @@ RECOMMENDED_MODELS = [
 #: Highlight detection over an 8-minute window is slow on consumer hardware.
 _REQUEST_TIMEOUT = httpx.Timeout(600.0, connect=5.0)
 
+#: Ollama's default context (2-4k tokens depending on version) is smaller than
+#: a transcript window rendered as [index]word, and Ollama truncates silently.
+#: So size the context to each request: big enough for the prompt plus the
+#: reply, no bigger, because every extra token of context costs VRAM and on a
+#: 6 GB card that pushes layers onto the CPU, which is many times slower.
+MIN_CTX = 4096
+MAX_CTX = 16384
+_REPLY_TOKENS = 2048
+
+
+def context_size(system: str, user: str) -> int:
+    """Estimate the context a request needs, rounded up to a multiple of 1024."""
+    # ~3 characters per token is conservative for [index]word text, which is
+    # digit- and bracket-heavy and tokenises worse than prose.
+    needed = (len(system) + len(user)) // 3 + _REPLY_TOKENS
+    rounded = -(-needed // 1024) * 1024
+    return max(MIN_CTX, min(MAX_CTX, rounded))
+
 
 class OllamaProvider(LLMProvider):
     name = "ollama"
@@ -61,7 +79,10 @@ class OllamaProvider(LLMProvider):
             # Ollama's JSON mode constrains decoding to valid JSON, which is the
             # single biggest reliability win for small local models.
             "format": "json",
-            "options": {"temperature": config.temperature},
+            "options": {
+                "temperature": config.temperature,
+                "num_ctx": context_size(system, user),
+            },
         }
 
         try:
@@ -127,4 +148,12 @@ def _translate_status(exc: httpx.HTTPStatusError, provider: str, model: str) -> 
             provider=provider,
             hint=f"Pull it with `ollama pull {model}`, or pick one you already have.",
         )
-    return ProviderError(f"Ollama returned HTTP {exc.response.status_code}.", provider=provider)
+    # Ollama puts the actual reason (e.g. "invalid model name") in the body.
+    try:
+        reason = exc.response.json().get("error", "")
+    except Exception:
+        reason = exc.response.text[:200]
+    detail = f": {reason}" if reason else "."
+    return ProviderError(
+        f"Ollama returned HTTP {exc.response.status_code}{detail}", provider=provider
+    )

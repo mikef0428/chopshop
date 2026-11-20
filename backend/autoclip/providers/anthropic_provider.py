@@ -8,13 +8,13 @@ from .base import DetectionConfig, LLMProvider, ProviderError, ProviderStatus
 
 log = logging.getLogger(__name__)
 
-DEFAULT_MODEL = "claude-sonnet-5"
+DEFAULT_MODEL = "claude-sonnet-5-5"
 
 #: Shown in the settings UI. Kept short and current rather than exhaustive.
 SUGGESTED_MODELS = [
-    "claude-opus-5",
-    "claude-sonnet-5",
-    "claude-haiku-4-5-20251001",
+    "claude-opus-5-5",
+    "claude-sonnet-5-5",
+    "claude-haiku-5-5",
 ]
 
 

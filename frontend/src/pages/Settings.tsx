@@ -98,21 +98,43 @@ export function Settings() {
         </div>
 
         <div className="mt-6 grid gap-5 sm:grid-cols-2">
-          <Field
-            label="Model"
-            value={settings.providers[settings.active_provider]?.model ?? ''}
-            placeholder="model name"
-            onCommit={(value) =>
+          {(() => {
+            const active = settings.active_provider
+            const current = settings.providers[active]?.model ?? ''
+            const commit = (value: string) =>
               patch({
                 providers: {
-                  [settings.active_provider]: {
-                    ...settings.providers[settings.active_provider],
-                    model: value,
-                  },
+                  [active]: { ...settings.providers[active], model: value },
                 },
               })
+            // Ollama reports the models actually pulled on this machine, so offer
+            // exactly those instead of a free-text box that invites typos.
+            const installed =
+              active === 'ollama'
+                ? (providers.find((p) => p.name === 'ollama' && p.available)?.models ?? [])
+                : []
+            if (installed.length === 0) {
+              return (
+                <Field label="Model" value={current} placeholder="model name" onCommit={commit} />
+              )
             }
-          />
+            const missing = current !== '' && !installed.includes(current)
+            const options = missing ? [current, ...installed] : installed
+            return (
+              <Select
+                label="Model"
+                hint={
+                  missing
+                    ? `“${current}” isn't installed in Ollama — pick one of these, or ollama pull it.`
+                    : 'Models installed in Ollama. Pull another with ollama pull to see it here.'
+                }
+                value={current}
+                onChange={commit}
+                options={options}
+                labels={missing ? { [current]: `${current} (not installed)` } : {}}
+              />
+            )
+          })()}
           <Field
             label="Base URL"
             hint="Point at OpenRouter, Groq, DeepSeek, or a local server."
