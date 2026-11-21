@@ -337,7 +337,9 @@ class PipelineRunner:
 
         model = getattr(provider, "model", "") or ""
         self._emit(
-            stage, 0.0, f"Finding highlights with {provider.name}" + (f" · {model}" if model else "")
+            stage,
+            0.0,
+            f"Finding highlights with {provider.name}" + (f" · {model}" if model else ""),
         )
         clips = await highlights.detect(
             transcript,

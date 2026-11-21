@@ -5,6 +5,49 @@
  * base URL to configure and no CORS to negotiate.
  */
 
+/** "stream" stacks the streamer's camera over the gameplay, with a chat card. */
+export type Layout = 'standard' | 'stream'
+
+export interface Box {
+  x: number
+  y: number
+  w: number
+  h: number
+}
+
+export interface StreamLayout {
+  cam: Box
+  game: Box
+  origin?: 'auto' | 'drawn'
+}
+
+export interface StreamLayoutResult {
+  layout: StreamLayout | null
+  width: number
+  height: number
+}
+
+/** A stretch of a YouTube video to download, in seconds. */
+export interface Section {
+  start_s: number
+  end_s: number
+}
+
+export interface Moment extends Section {
+  score: number
+  /** "replays" = YouTube's most-replayed heatmap; "comments" = timestamps viewers wrote. */
+  source: 'replays' | 'comments'
+  quotes: string[]
+  /** Comments hint at nudity or sexual content. */
+  flagged: boolean
+}
+
+export interface MomentsResult {
+  title: string
+  duration_s: number
+  moments: Moment[]
+}
+
 export interface Source {
   id: string
   type: string
@@ -229,10 +272,16 @@ export const api = {
 
   listSources: () => request<Source[]>('/api/sources'),
 
-  ingestYouTube: (url: string, cookiesFromBrowser?: string) =>
+  ingestYouTube: (url: string, sections?: Section[]) =>
     request<Source>('/api/sources/youtube', {
       method: 'POST',
-      body: JSON.stringify({ url, cookies_from_browser: cookiesFromBrowser || null }),
+      body: JSON.stringify({ url, sections: sections?.length ? sections : null }),
+    }),
+
+  findMoments: (url: string) =>
+    request<MomentsResult>('/api/sources/youtube/moments', {
+      method: 'POST',
+      body: JSON.stringify({ url }),
     }),
 
   uploadSource: (file: File) => {
@@ -273,11 +322,25 @@ export const api = {
       body: JSON.stringify(patch),
     }),
 
-  exportClip: (clipId: string, ratio: string, style: string, writeSrt = false) =>
+  exportClip: (clipId: string, ratio: string, style: string, layout: Layout = 'standard') =>
     request<ExportRecord>(`/api/clips/${clipId}/export`, {
       method: 'POST',
-      body: JSON.stringify({ ratio, style, write_srt: writeSrt }),
+      body: JSON.stringify({ ratio, style, layout }),
     }),
+
+  getStreamLayout: (sourceId: string) =>
+    request<StreamLayoutResult>(`/api/sources/${sourceId}/stream-layout`),
+  detectStreamLayout: (sourceId: string) =>
+    request<StreamLayoutResult>(`/api/sources/${sourceId}/stream-layout/detect`, {
+      method: 'POST',
+    }),
+  saveStreamLayout: (sourceId: string, layout: StreamLayout) =>
+    request<StreamLayoutResult>(`/api/sources/${sourceId}/stream-layout`, {
+      method: 'PUT',
+      body: JSON.stringify(layout),
+    }),
+  frameUrl: (sourceId: string, t: number) =>
+    `/api/sources/${sourceId}/frame?t=${t.toFixed(1)}`,
 
   captionStyles: () => request<CaptionStyle[]>('/api/caption-styles'),
   providerStatus: () => request<ProviderStatus[]>('/api/providers/status'),

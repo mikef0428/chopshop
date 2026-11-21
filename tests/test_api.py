@@ -171,6 +171,14 @@ class TestSources:
 
         assert response.status_code == 400
 
+    def test_backwards_section_is_rejected(self, client: TestClient) -> None:
+        response = client.post(
+            "/api/sources/youtube",
+            json={"url": "https://youtu.be/abc", "sections": [{"start_s": 90, "end_s": 30}]},
+        )
+
+        assert response.status_code == 422
+
     def test_unsupported_upload_type_is_rejected(self, client: TestClient) -> None:
         response = client.post(
             "/api/sources/upload",

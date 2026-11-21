@@ -14,7 +14,9 @@ from ..config import load as load_settings
 from ..db import store
 from ..db.models import Export, new_id
 from ..pipeline import captions as captions_module
+from ..pipeline import chat as chat_module
 from ..pipeline import export as export_module
+from ..pipeline.reframe import facecam
 from ..pipeline.reframe.croppath import CropPath, centre_crop
 from ..pipeline.runner import JobWorkspace
 from ..pipeline.transcript import Transcript, Word
@@ -31,6 +33,47 @@ from .schemas import (
 log = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api", tags=["clips"])
+
+
+def stream_layout_for(source) -> facecam.StreamLayout | None:
+    """The source's saved stream layout, detecting and saving one the first time."""
+    media = Path(source.path).parent
+    layout = facecam.load_layout(media)
+    if layout is None:
+        cam = facecam.detect_stream_facecam(Path(source.path), source.duration_s)
+        if cam is None:
+            return None
+        game = facecam.default_game_box(source.width or 1920, source.height or 1080)
+        layout = facecam.StreamLayout(cam, game, origin="auto")
+        facecam.save_layout(media, layout)
+    return layout
+
+
+def _chat_card(source, clip) -> tuple[str, str] | None:
+    """A standout viewer message from the clip's moment and its label, or None."""
+    if source.type != "youtube" or not source.url:
+        return None
+    sections = chat_module.read_sections(Path(source.path).parent)
+    start = chat_module.to_original_time(clip.start_s, sections)
+    end = chat_module.to_original_time(clip.end_s, sections)
+    if not start < end <= start + 2 * (clip.end_s - clip.start_s):
+        end = start + (clip.end_s - clip.start_s)  # the clip straddles a section join
+    settings = load_settings().ingest
+    label = "LIVE CHAT"
+    try:
+        messages = chat_module.fetch_chat(source.url, start, end, settings)
+        if not messages:
+            label = "TOP COMMENT"
+            # No chat replay: fall back to top comments that name this moment.
+            # Viewers timestamp where a moment starts, and clips often land
+            # minutes into it, so look well back and only a little ahead.
+            comments = chat_module.comment_messages(source.url, Path(source.path).parent, settings)
+            messages = [m for m in comments if start - 300 <= m.t <= end + 30]
+    except Exception as exc:  # the card is a bonus; never fail an export over it
+        log.warning("No chat card for clip %s: %s", clip.id, exc)
+        return None
+    best = chat_module.pick_card(messages)
+    return (best.text, label) if best else None
 
 
 def _clip_out(clip) -> ClipOut:
@@ -202,6 +245,25 @@ async def export_clip(clip_id: str, payload: ExportRequestIn) -> ExportOut:
         / export_module.output_filename(clip.title or f"clip-{clip.rank}", payload.ratio)
     )
 
+    stream = card = None
+    card_label = "LIVE CHAT"
+    if payload.layout == "stream":
+        if payload.ratio != "9:16":
+            raise HTTPException(status_code=400, detail="The stream layout is 9:16 only.")
+        stream = await asyncio.to_thread(stream_layout_for, source)
+        if stream is None:
+            raise HTTPException(
+                status_code=422,
+                detail={
+                    "message": "Couldn't find the streamer's camera in this video.",
+                    "hint": "Open Stream layout, draw the streamer and gameplay boxes, "
+                    "then export again.",
+                },
+            )
+        card = await asyncio.to_thread(_chat_card, source, clip)
+        card, card_label = card if card else (None, "LIVE CHAT")
+        destination = destination.with_name(destination.stem + "_stream" + destination.suffix)
+
     request = export_module.ExportRequest(
         source=Path(source.path),
         destination=destination,
@@ -211,6 +273,9 @@ async def export_clip(clip_id: str, payload: ExportRequestIn) -> ExportOut:
         words=words,
         style=style,
         ratio=payload.ratio,
+        stream=stream,
+        card=card,
+        card_label=card_label,
     )
 
     try:

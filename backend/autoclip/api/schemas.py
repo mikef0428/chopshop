@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from typing import Any, Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 from ..db import models
 
@@ -51,9 +51,44 @@ class SourceOut(BaseModel):
         )
 
 
+class SectionIn(BaseModel):
+    start_s: float = Field(ge=0)
+    end_s: float = Field(gt=0)
+
+    @model_validator(mode="after")
+    def _ordered(self) -> SectionIn:
+        if self.end_s <= self.start_s:
+            raise ValueError("A section must end after it starts.")
+        return self
+
+
 class YouTubeIngestIn(BaseModel):
     url: str
     cookies_from_browser: str | None = None
+    #: Download only these ranges, joined in order. Omit for the whole video.
+    sections: list[SectionIn] | None = Field(default=None, max_length=50)
+
+
+class MomentsIn(BaseModel):
+    url: str
+    cookies_from_browser: str | None = None
+
+
+class MomentOut(BaseModel):
+    start_s: float
+    end_s: float
+    score: float
+    #: "replays" (YouTube's most-replayed heatmap) or "comments" (timestamps viewers wrote).
+    source: str
+    quotes: list[str]
+    #: Comments suggest nudity or sexual content — risky for a Shorts channel.
+    flagged: bool
+
+
+class MomentsOut(BaseModel):
+    title: str
+    duration_s: float
+    moments: list[MomentOut]
 
 
 class JobSettingsIn(BaseModel):
@@ -203,6 +238,29 @@ class ExportRequestIn(BaseModel):
     ratio: Literal["9:16", "1:1", "16:9"] = "9:16"
     style: str = "bold_pop"
     write_srt: bool = False
+    #: "stream" stacks the streamer's camera over the gameplay and adds a chat card.
+    layout: Literal["standard", "stream"] = "standard"
+
+
+class BoxIO(BaseModel):
+    x: int = Field(ge=0)
+    y: int = Field(ge=0)
+    w: int = Field(gt=0)
+    h: int = Field(gt=0)
+
+
+class StreamLayoutIO(BaseModel):
+    cam: BoxIO
+    game: BoxIO
+    #: "auto" (detected) or "drawn" (by the user). Ignored on save — saving marks it drawn.
+    origin: str = "drawn"
+
+
+class StreamLayoutOut(BaseModel):
+    #: Null when no layout is saved yet and detection hasn't run or found nothing.
+    layout: StreamLayoutIO | None
+    width: int
+    height: int
 
 
 class CaptionStyleOut(BaseModel):

@@ -9,11 +9,13 @@ import {
   type Clip,
   type CropPath,
   type Job,
+  type Layout,
   type Word,
 } from '../api'
 import { CaptionEditor } from '../components/CaptionEditor'
 import { ClipPlayer } from '../components/ClipPlayer'
 import { ErrorNote } from '../components/ErrorNote'
+import { StreamLayoutEditor } from '../components/StreamLayoutEditor'
 import { TrimBar } from '../components/TrimBar'
 
 const RATIOS = ['9:16', '1:1', '16:9'] as const
@@ -29,6 +31,9 @@ export function Review() {
   const [wordsDirty, setWordsDirty] = useState(false)
   const [savingWords, setSavingWords] = useState(false)
   const [exporting, setExporting] = useState<Set<string>>(new Set())
+  // Stream layout is for streamer recordings only, so it's opt-in per job.
+  const [layout, setLayout] = useState<Layout>('standard')
+  const [editingBoxes, setEditingBoxes] = useState(false)
   const [error, setError] = useState<Error | null>(null)
 
   useEffect(() => {
@@ -118,7 +123,9 @@ export function Review() {
     setExporting((current) => new Set(current).add(clip.id))
     setError(null)
     try {
-      await api.exportClip(clip.id, clip.ratio, clip.caption_style)
+      // The stream layout is a 9:16 stack, whatever ratio the clip is set to.
+      const ratio = layout === 'stream' ? '9:16' : clip.ratio
+      await api.exportClip(clip.id, ratio, clip.caption_style, layout)
       patchClip(await api.getClip(clip.id))
     } catch (err) {
       setError(err as Error)
@@ -295,6 +302,60 @@ export function Review() {
                       </button>
                     ))}
                   </div>
+                </div>
+
+                <div>
+                  <p className="eyebrow border-b border-ink-800 pb-2">Layout</p>
+                  <div className="mt-3 flex gap-2">
+                    {(['standard', 'stream'] as const).map((option) => (
+                      <button
+                        key={option}
+                        onClick={() => setLayout(option)}
+                        className={['btn', option === layout ? 'btn-primary' : 'btn-ghost'].join(
+                          ' ',
+                        )}
+                      >
+                        {option === 'standard' ? 'Standard' : 'Stream'}
+                      </button>
+                    ))}
+                  </div>
+                  {layout === 'stream' && job?.source && (
+                    <>
+                      <p className="mt-2 text-xs leading-relaxed text-ink-500">
+                        Streamer on top, gameplay below, captions on the seam, and a live chat
+                        card for the first 3 seconds. Always 9:16.
+                      </p>
+                      <button
+                        className="btn btn-quiet -ml-1 mt-1 text-xs"
+                        onClick={() => setEditingBoxes(true)}
+                      >
+                        Check streamer & gameplay boxes
+                      </button>
+                      {editingBoxes && (
+                        // Full-size so the boxes can be drawn precisely; the side panel is too narrow.
+                        <div
+                          className="fixed inset-0 z-50 overflow-y-auto bg-ink-900/95 px-4 py-10"
+                          role="dialog"
+                          aria-label="Streamer and gameplay boxes"
+                          onKeyDown={(e) => e.key === 'Escape' && setEditingBoxes(false)}
+                        >
+                          <div className="mx-auto max-w-4xl">
+                            <div className="flex items-baseline justify-between">
+                              <p className="eyebrow">Streamer & gameplay boxes</p>
+                              <button
+                                className="btn btn-quiet"
+                                onClick={() => setEditingBoxes(false)}
+                                autoFocus
+                              >
+                                Done
+                              </button>
+                            </div>
+                            <StreamLayoutEditor sourceId={job.source.id} t={selected.start_s + 1} />
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  )}
                 </div>
 
                 <div className="border-t border-ink-800 pt-6">

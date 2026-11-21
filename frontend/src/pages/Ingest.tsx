@@ -8,12 +8,15 @@ import {
   type Job,
   type JobSettingsOverrides,
   type ProviderStatus,
+  type Section,
 } from '../api'
 import { ErrorNote } from '../components/ErrorNote'
+import { SectionPicker } from '../components/SectionPicker'
 
 export function Ingest() {
   const navigate = useNavigate()
   const [url, setUrl] = useState('')
+  const [sections, setSections] = useState<Section[]>([])
   const [busy, setBusy] = useState<'url' | 'file' | null>(null)
   const [error, setError] = useState<ApiError | Error | null>(null)
   const [jobs, setJobs] = useState<Job[]>([])
@@ -48,7 +51,8 @@ export function Ingest() {
   const submitUrl = (event: React.FormEvent) => {
     event.preventDefault()
     if (!url.trim()) return
-    void start('url', () => api.ingestYouTube(url.trim()))
+    const valid = sections.filter((s) => s.end_s > s.start_s)
+    void start('url', () => api.ingestYouTube(url.trim(), valid))
   }
 
   const submitFile = (file: File) => void start('file', () => api.uploadSource(file))
@@ -81,7 +85,10 @@ export function Ingest() {
                 className="field font-display text-xl md:text-2xl"
                 placeholder="https://youtube.com/watch?v=…"
                 value={url}
-                onChange={(e) => setUrl(e.target.value)}
+                onChange={(e) => {
+                  setUrl(e.target.value)
+                  setSections([]) // ranges belong to the video they were picked for
+                }}
                 autoComplete="off"
                 spellCheck={false}
                 disabled={busy !== null}
@@ -99,6 +106,13 @@ export function Ingest() {
           <p className="mt-3 text-xs leading-relaxed text-ink-500">
             Only download video you own or have the rights to process.
           </p>
+
+          <SectionPicker
+            url={url.trim()}
+            sections={sections}
+            onChange={setSections}
+            disabled={busy !== null}
+          />
 
           <AdvancedOptions
             open={advancedOpen}

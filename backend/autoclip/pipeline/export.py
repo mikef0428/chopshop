@@ -20,6 +20,7 @@ from . import captions as captions_module
 from . import ffmpeg
 from .captions import CaptionStyle
 from .reframe.croppath import CropPath, segment_crop_filter
+from .reframe.facecam import Box, StreamLayout
 from .transcript import Word
 
 log = logging.getLogger(__name__)
@@ -56,6 +57,12 @@ class ExportRequest:
     style: CaptionStyle
     ratio: str = "9:16"
     burn_captions: bool = True
+    #: Stack the streamer's camera over the gameplay instead of following the crop path.
+    stream: StreamLayout | None = None
+    #: A chat message shown as a pop-up card at the start (stream clips).
+    card: str | None = None
+    #: Heading over the card: "LIVE CHAT" or "TOP COMMENT", whichever it came from.
+    card_label: str = "LIVE CHAT"
 
     @property
     def duration_s(self) -> float:
@@ -92,6 +99,14 @@ def build_video_filtergraph(
 ) -> str:
     """Build the ``-filter_complex`` video chain for one clip."""
     out_w, out_h = ratio_dimensions(request.ratio)
+    if request.stream is not None:
+        return ";".join(
+            [
+                *_stream_chain(request.stream, out_w, out_h),
+                _caption_step("[vcat]", request, subtitle_name, fonts_name),
+            ]
+        )
+
     segments = request.crop_path.segments
     if not segments:
         raise ExportError("The crop path has no segments.")
@@ -133,14 +148,50 @@ def build_video_filtergraph(
         parts.append(f"{''.join(labels)}concat=n={len(segments)}:v=1:a=0[vcat]")
         current = "[vcat]"
 
+    parts.append(_caption_step(current, request, subtitle_name, fonts_name))
+    return ";".join(parts)
+
+
+def _caption_step(
+    current: str, request: ExportRequest, subtitle_name: str | None, fonts_name: str
+) -> str:
     if request.burn_captions and subtitle_name is not None:
         # Bare relative names — ffmpeg runs with its cwd set to the render
         # workspace, so there is nothing here that needs escaping.
-        parts.append(f"{current}ass=filename={subtitle_name}:fontsdir={fonts_name}[vout]")
-    else:
-        parts.append(f"{current}null[vout]")
+        return f"{current}ass=filename={subtitle_name}:fontsdir={fonts_name}[vout]"
+    return f"{current}null[vout]"
 
-    return ";".join(parts)
+
+def stream_cam_height(cam: Box, out_w: int, out_h: int) -> int:
+    """Height of the camera band: the camera's own shape at full width, within limits."""
+    natural = out_w * cam.h / max(cam.w, 1)
+    return int(min(max(natural, 0.28 * out_h), 0.45 * out_h)) // 2 * 2
+
+
+def _cover(box: Box, target_w: int, target_h: int) -> str:
+    """Crop ``box`` to the target's shape (centred), then scale to fill it."""
+    w, h, x, y = box.w, box.h, box.x, box.y
+    if w / h > target_w / target_h:
+        new_w = h * target_w / target_h
+        x, w = x + (w - new_w) / 2, new_w
+    else:
+        new_h = w * target_h / target_w
+        y, h = y + (h - new_h) / 2, new_h
+    return (
+        f"crop={int(w) // 2 * 2}:{int(h) // 2 * 2}:{int(x)}:{int(y)},"
+        f"scale={target_w}:{target_h}:flags=lanczos,setsar=1"
+    )
+
+
+def _stream_chain(layout: StreamLayout, out_w: int, out_h: int) -> list[str]:
+    """Streamer's camera on top, gameplay underneath, joined into [vcat]."""
+    cam_h = stream_cam_height(layout.cam, out_w, out_h)
+    return [
+        "[0:v]split=2[camsrc][gamesrc]",
+        f"[camsrc]{_cover(layout.cam, out_w, cam_h)}[cam]",
+        f"[gamesrc]{_cover(layout.game, out_w, out_h - cam_h)}[game]",
+        "[cam][game]vstack=inputs=2,format=yuv420p[vcat]",
+    ]
 
 
 def _fit_chain(source_label: str, index: int, out_w: int, out_h: int) -> list[str]:
@@ -244,7 +295,7 @@ def export_clip(
     fonts_name = "fonts"
     render_cwd: Path | None = None
 
-    if request.burn_captions and request.words:
+    if request.burn_captions and (request.words or request.card):
         ass_path = captions_module.write_ass(
             workspace / "captions.ass",
             request.words,
@@ -252,6 +303,9 @@ def export_clip(
             width=out_w,
             height=out_h,
             time_offset_s=request.start_s,
+            seam_y=stream_cam_height(request.stream.cam, out_w, out_h) if request.stream else None,
+            card=request.card,
+            card_label=request.card_label,
         )
         render_cwd, subtitle_name, fonts_name = ffmpeg.relative_filter_workspace(
             ass_path, captions_module.FONT_DIR

@@ -248,11 +248,17 @@ def build_ass(
     width: int,
     height: int,
     time_offset_s: float = 0.0,
+    seam_y: int | None = None,
+    card: str | None = None,
+    card_label: str = "LIVE CHAT",
 ) -> pysubs2.SSAFile:
     """Build an ASS subtitle file for a clip.
 
     ``time_offset_s`` is subtracted from every timestamp, so absolute transcript
-    times become clip-relative ones.
+    times become clip-relative ones. ``seam_y`` centres the captions on that
+    line (the join in a stacked stream layout) instead of the style's spot.
+    ``card`` adds a viewer message as a pop-up card for the first few seconds,
+    headed by ``card_label`` (where the message came from).
 
     Preconditions:
         words are in chronological order and carry start/end timings.
@@ -264,7 +270,19 @@ def build_ass(
     subs.info["WrapStyle"] = "0"
 
     scale = height / REFERENCE_HEIGHT
-    subs.styles[STYLE_NAME] = _build_ass_style(style, height=height, scale=scale)
+    ass_style = _build_ass_style(style, height=height, scale=scale)
+    if seam_y is not None:
+        # Bottom-aligned, so lift the baseline to put one line's middle on the seam.
+        ass_style.marginv = max(0, round(height - seam_y - ass_style.fontsize * 0.55))
+    subs.styles[STYLE_NAME] = ass_style
+    if card:
+        subs.styles[CARD_STYLE] = _card_style(height=height, scale=scale)
+        label = r"{\fs" + str(round(height * 0.018)) + r"\c&H6BC8FF&\b1}" + card_label + r"{\r}\N"
+        subs.events.append(
+            pysubs2.SSAEvent(
+                start=0, end=int(CARD_SECONDS * 1000), style=CARD_STYLE, text=label + _escape(card)
+            )
+        )
 
     groups = group_words(words, max_words=style.max_words)
 
@@ -277,6 +295,33 @@ def build_ass(
             subs.events.append(_static_event(group, style, time_offset_s))
 
     return subs
+
+
+CARD_STYLE = "ChatCard"
+#: How long the chat card stays up — a hook, not a feed.
+CARD_SECONDS = 3.0
+
+
+def _card_style(*, height: int, scale: float) -> pysubs2.SSAStyle:
+    card = pysubs2.SSAStyle()
+    card.fontname = "Arial"
+    card.fontsize = round(height * 0.03)
+    card.bold = True
+    card.primarycolor = hex_to_ass("#FFFFFF")
+    # Under BorderStyle 3 renderers disagree on which colour fills the box; set both.
+    card.outlinecolor = card.backcolor = hex_to_ass("#141414", alpha=40)
+    card.borderstyle = 3
+    card.outline = 18 * scale  # box padding
+    card.shadow = 0
+    card.alignment = pysubs2.Alignment.TOP_CENTER
+    card.marginv = round(height * 0.045)
+    card.marginl = card.marginr = round(height * 0.06)
+    return card
+
+
+def _escape(text: str) -> str:
+    """Keep chat text literal: braces would start ASS override tags."""
+    return text.replace("{", "(").replace("}", ")").replace("\\", "/")
 
 
 def _build_ass_style(style: CaptionStyle, *, height: int, scale: float) -> pysubs2.SSAStyle:
@@ -375,9 +420,21 @@ def write_ass(
     width: int,
     height: int,
     time_offset_s: float = 0.0,
+    seam_y: int | None = None,
+    card: str | None = None,
+    card_label: str = "LIVE CHAT",
 ) -> Path:
     """Render captions to an .ass file and return its path."""
-    subs = build_ass(words, style, width=width, height=height, time_offset_s=time_offset_s)
+    subs = build_ass(
+        words,
+        style,
+        width=width,
+        height=height,
+        time_offset_s=time_offset_s,
+        seam_y=seam_y,
+        card=card,
+        card_label=card_label,
+    )
     path.parent.mkdir(parents=True, exist_ok=True)
     subs.save(str(path), encoding="utf-8")
     return path
