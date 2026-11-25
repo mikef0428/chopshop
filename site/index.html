@@ -3,66 +3,195 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Chop Shop - clips cut from your streams</title>
-  <meta name="description" content="Chop Shop turns your long streams into vertical clips ready to post.">
-  <link rel="icon" href="assets/logo.png">
+  <title>Chop Shop - Shorts, Reels and TikToks cut from your streams</title>
+  <meta name="description" content="Your stream already has the moments. We cut them into Shorts, Reels and TikToks while you sleep. First clip every day is free.">
+  <meta name="theme-color" content="#000000">
+  <link rel="icon" href="assets/favicon.png" type="image/png">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <header>
-    <img src="assets/banner.png" alt="Chop Shop">
-    <h1>Your best stream moments, cut into clips.</h1>
-    <p>Chop Shop finds the moments worth keeping and cuts them into vertical clips you can post.</p>
-    <a class="btn" data-link="freeClipUrl">Get your free clip</a>
+  <a class="skip" href="#main">Skip to content</a>
+
+  <header class="hero">
+    <nav class="topnav" aria-label="Sections">
+      <a href="#how">How it works</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#faq">FAQ</a>
+    </nav>
+    <img class="hero-banner" src="assets/banner.jpg"
+         srcset="assets/banner-800.jpg 800w, assets/banner.jpg 1600w"
+         sizes="(min-width: 64rem) 60rem, 100vw"
+         width="1600" height="360" alt="Chop Shop">
+    <div class="hero-copy">
+      <h1>Your stream already has the moments.</h1>
+      <p class="lede">We cut them into Shorts, Reels and TikToks while you sleep. First clip every day is free.</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" data-link="freeClipUrl">Get my free clip</a>
+        <a class="textlink" href="#pricing">See prices</a>
+      </div>
+    </div>
   </header>
-  <main>
-    <section id="why">
-      <h2>Why Chop Shop</h2>
-      <p>Streams are long and editing takes hours. We do the cutting so you can keep streaming.</p>
+
+  <main id="main">
+    <section id="why" class="why">
+      <h2>Your stream lives in one place. Clips go everywhere.</h2>
+      <p>A four-hour stream only reaches the people already watching. A 40-second clip of the best minute can show up in feeds where nobody has heard of you yet. Every clip you post is one more shot at getting found.</p>
+      <p>That's not a promise of views. Nobody can honestly promise that. It's just where the people are:</p>
+      <ul class="facts">
+        <li>
+          <strong>200 billion</strong>
+          <span>YouTube says Shorts now average over 200 billion views a day.
+            <a href="https://blog.youtube/news-and-events/neal-mohan-cannes-2025/">YouTube Official Blog, June 2025</a></span>
+        </li>
+        <li>
+          <strong>30%+</strong>
+          <span>Meta says Instagram Reels watch time in the US grew more than 30% year over year.
+            <a href="https://s21.q4cdn.com/399680738/files/doc_financials/2025/q4/META-Q4-2025-Earnings-Call-Transcript.pdf">Meta Q4 2025 earnings call, January 2026</a></span>
+        </li>
+        <li>
+          <strong>1 billion</strong>
+          <span>TikTok said back in 2021 that more than 1 billion people come to the app every month.
+            <a href="https://newsroom.tiktok.com/en-us/1-billion-people-on-tiktok">TikTok Newsroom, September 2021</a></span>
+        </li>
+      </ul>
     </section>
-    <section id="how">
+
+    <section id="how" class="how">
       <h2>How it works</h2>
-      <ol>
-        <li>Send us a stream or VOD.</li>
-        <li>We pick the strongest moments and cut them vertical.</li>
-        <li>You get clips back, ready to post.</li>
+      <ol class="steps">
+        <li>
+          <h3>Send your stream link</h3>
+          <p>A YouTube or Twitch VOD link. Nothing to install, no files to upload.</p>
+        </li>
+        <li>
+          <h3>We find and cut the best moments, with captions, titles and hashtags</h3>
+          <p>Vertical, captioned, trimmed tight, and named so you're not staring at a blank title box.</p>
+        </li>
+        <li>
+          <h3>Download and post</h3>
+          <p>Within 24 hours. They're your clips; post them wherever you like.</p>
+        </li>
       </ol>
     </section>
+
     <section id="examples" data-requires="examples">
       <h2>Examples</h2>
       <p>Clips we have cut for streamers.</p>
     </section>
-    <section id="pricing">
+
+    <section id="pricing" class="pricing">
       <h2>Pricing</h2>
-      <h3>Free</h3>
-      <p>1 clip per day, with an end tag.</p>
-      <a class="btn" data-link="freeClipUrl">Try it free</a>
-      <h3>Pay as you go</h3>
-      <ul>
-        <li>$2 per clip <a class="btn" data-link="clip">Buy</a></li>
-        <li>10 clips for $15 <a class="btn" data-link="pack10">Buy</a></li>
-        <li>30 clips for $36 <a class="btn" data-link="pack30">Buy</a></li>
+      <p class="section-lede">Start free. Buy clips when you need them, or subscribe if you stream a lot.</p>
+
+      <div class="tier tier-free">
+        <div>
+          <h3>Free</h3>
+          <p class="price">1 clip a day, free</p>
+          <p>Ends with a short Chop Shop end tag. Covers up to 60 minutes of stream.</p>
+        </div>
+        <a class="btn btn-primary" data-link="freeClipUrl">Get my free clip</a>
+      </div>
+
+      <h3 class="group-title">Pay as you go</h3>
+      <p class="group-note">No end tag. Each order covers up to 60 minutes of stream. Pack clips never expire.</p>
+      <ul class="packs">
+        <li>
+          <span class="pack-name">Single clip</span>
+          <span class="price">$2 per clip</span>
+          <a class="btn" data-link="clip">Buy one</a>
+        </li>
+        <li>
+          <span class="pack-name">10-pack</span>
+          <span class="price">10 clips for $15</span>
+          <a class="btn" data-link="pack10">Buy 10</a>
+        </li>
+        <li>
+          <span class="pack-name">30-pack</span>
+          <span class="price">30 clips for $36</span>
+          <a class="btn" data-link="pack30">Buy 30</a>
+        </li>
       </ul>
-      <h3>Subscriptions</h3>
-      <ul>
-        <li>Starter: $9/month, 3 clips a day, 40 a month <a class="btn" data-link="starter">Subscribe</a></li>
-        <li>Pro: $19/month, 10 clips a day, 150 a month <a class="btn" data-link="pro">Subscribe</a></li>
-      </ul>
-      <h3>Managed</h3>
-      <p>$149/month. We run your clipping for you. Limited to 10 customers.</p>
-      <a class="btn" data-link="managedUrl">Apply</a>
+
+      <h3 class="group-title">Subscriptions</h3>
+      <p class="founding">The first 50 subscribers keep their price for as long as they stay.</p>
+      <div class="subs">
+        <div class="sub">
+          <h4>Starter</h4>
+          <p class="price">$9/month</p>
+          <ul>
+            <li>3 clips a day, 40 a month</li>
+            <li>Up to 60 minutes of stream per order</li>
+            <li>No end tag</li>
+          </ul>
+          <a class="btn" data-link="starter">Start Starter</a>
+        </div>
+        <div class="sub sub-pro">
+          <h4>Pro</h4>
+          <p class="price">$19/month</p>
+          <ul>
+            <li>10 clips a day, 150 a month</li>
+            <li>Up to 2 hours of stream per order</li>
+            <li>No end tag</li>
+          </ul>
+          <a class="btn btn-primary" data-link="pro">Go Pro</a>
+        </div>
+      </div>
+
+      <div class="tier tier-managed">
+        <div>
+          <h3>Managed</h3>
+          <p class="price">$149/month</p>
+          <p>Everything in Pro, and I personally review every clip before it reaches you. Up to 2 hours of stream per order. Ten customers at most, so each one gets real attention.</p>
+        </div>
+        <a class="btn" data-link="managedUrl">By invitation — ask us</a>
+      </div>
     </section>
-    <section id="faq">
-      <h2>FAQ</h2>
-      <h3>What is the end tag?</h3>
-      <p>Free clips end with a short Chop Shop tag. Paid clips do not.</p>
-      <h3>Do you guarantee views?</h3>
-      <p>No. We cut the clips; what happens after you post is up to the audience.</p>
+
+    <section id="faq" class="faq">
+      <h2>Questions</h2>
+      <details>
+        <summary>Who owns the clips?</summary>
+        <p>You do. They're cut from your stream, and you can post, edit or monetize them however you like. We never post them anywhere without asking you first.</p>
+      </details>
+      <details>
+        <summary>How long does it take?</summary>
+        <p>Within 24 hours of sending your link. Usually you send it before bed and the clips are there in the morning.</p>
+      </details>
+      <details>
+        <summary>Which platforms do you take?</summary>
+        <p>YouTube and Twitch VOD links. The clips come back vertical, sized for Shorts, Reels and TikTok.</p>
+      </details>
+      <details>
+        <summary>Can my clips still get claimed?</summary>
+        <p>Yes, they can. If your stream had copyrighted music or a game cutscene in it, that can still trigger a claim when you upload the clip. We can't promise any clip is claim-free, so it's worth a look before you post.</p>
+      </details>
+      <details>
+        <summary>What's the end tag?</summary>
+        <p>Free clips finish with a short Chop Shop tag at the end. That's how the free clip pays for itself. Paid clips and subscriptions have no tag.</p>
+      </details>
+      <details>
+        <summary>Can I get a refund?</summary>
+        <p>Yes. In your first 90 days, if you're not happy, ask and you get your money back. No questions.</p>
+      </details>
+      <details>
+        <summary>Who actually runs this?</summary>
+        <p>One person and an AI. The AI watches the stream and finds the moments; I check the clips, fix what it gets wrong, and answer your messages myself. No agency, no team of editors, no call center.</p>
+      </details>
+    </section>
+
+    <section class="closer">
+      <h2>Your next stream is already full of clips.</h2>
+      <a class="btn btn-primary" data-link="freeClipUrl">Get my free clip</a>
     </section>
   </main>
-  <footer>
-    <p>&copy; Chop Shop</p>
+
+  <footer class="footer">
+    <img src="assets/favicon.png" width="32" height="32" alt="">
+    <p>Chop Shop. One person and an AI, cutting clips for streamers.</p>
+    <p>&copy; 2026 Chop Shop</p>
   </footer>
+
   <script src="config.js"></script>
   <script src="main.js"></script>
 </body>

@@ -29,6 +29,17 @@ def test_local_links_resolve():
 
 def test_prices_and_branding():
     html = (SITE / "index.html").read_text(encoding="utf-8")
-    for price in ("$2", "$15", "$36", "$9", "$19", "$149"):
+    for price in (
+        "1 clip a day, free",
+        "$2 per clip",
+        "10 clips for $15",
+        "30 clips for $36",
+        "$9/month",
+        "3 clips a day, 40 a month",
+        "$19/month",
+        "10 clips a day, 150 a month",
+        "$149/month",
+        "The first 50 subscribers keep their price for as long as they stay.",
+    ):
         assert price in html, f"missing price {price}"
     assert "AutoClip" not in html
