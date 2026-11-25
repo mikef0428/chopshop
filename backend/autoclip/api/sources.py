@@ -49,8 +49,9 @@ async def get_source(source_id: str) -> SourceOut:
 
 
 def _youtube_settings(url: str, cookies_from_browser: str | None):
-    if not ingest.is_youtube_url(url):
-        raise HTTPException(status_code=400, detail="That is not a YouTube URL.")
+    # Twitch channel links pass through so ingest can explain what to paste instead.
+    if not (ingest.is_supported_url(url) or ingest.is_twitch_url(url)):
+        raise HTTPException(status_code=400, detail="That is not a YouTube or Twitch URL.")
     settings = load_settings().ingest
     if cookies_from_browser is not None:
         settings = settings.model_copy(update={"cookies_from_browser": cookies_from_browser})

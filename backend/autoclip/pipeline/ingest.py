@@ -30,6 +30,8 @@ AUDIO_SUFFIXES = {".mp3", ".wav", ".m4a", ".aac", ".flac", ".ogg", ".opus"}
 ACCEPTED_SUFFIXES = VIDEO_SUFFIXES | AUDIO_SUFFIXES
 
 _YOUTUBE_HOSTS = ("youtube.com", "youtu.be", "www.youtube.com", "m.youtube.com")
+_TWITCH_HOSTS = ("twitch.tv", "www.twitch.tv", "m.twitch.tv")
+_TWITCH_VOD_PATH = re.compile(r"^/videos/(\d+)/?$")
 
 #: yt-dlp error fragments that mean "YouTube wants proof you're a human".
 _BOT_CHECK_MARKERS = (
@@ -61,6 +63,30 @@ def is_youtube_url(url: str) -> bool:
     except ValueError:
         return False
     return host in _YOUTUBE_HOSTS
+
+
+def is_twitch_url(url: str) -> bool:
+    from urllib.parse import urlparse
+
+    try:
+        return (urlparse(url).hostname or "").lower() in _TWITCH_HOSTS
+    except ValueError:
+        return False
+
+
+def twitch_vod_id(url: str) -> str | None:
+    """The VOD id of a twitch.tv/videos/<id> link, or None for anything else."""
+    from urllib.parse import urlparse
+
+    if not is_twitch_url(url):
+        return None
+    match = _TWITCH_VOD_PATH.match(urlparse(url).path)
+    return match.group(1) if match else None
+
+
+def is_supported_url(url: str) -> bool:
+    """A link we can download: YouTube, or a Twitch past broadcast."""
+    return is_youtube_url(url) or twitch_vod_id(url) is not None
 
 
 def slugify(text: str, *, max_length: int = 60) -> str:
@@ -119,6 +145,12 @@ def ingest_youtube(
         url points at content the user owns or has the rights to process.
     """
     import yt_dlp
+
+    if is_twitch_url(url) and twitch_vod_id(url) is None:
+        raise IngestError(
+            "That is a Twitch channel or live link.",
+            hint="Paste the link to a past broadcast, like twitch.tv/videos/123456789.",
+        )
 
     settings = settings or IngestSettings()
     sections = normalize_sections(sections or [])
@@ -202,6 +234,8 @@ def ingest_youtube(
 
     return Source(
         id=source_id,
+        # ponytail: 'youtube' means "fetched by yt-dlp"; add a 'twitch' type with a
+        # table-rebuild migration when the self-serve site needs to tell them apart.
         type="youtube",
         url=url,
         path=str(downloaded),
@@ -235,21 +269,21 @@ def _translate_ytdlp_error(exc: Exception, settings: IngestSettings) -> IngestEr
                 "cookies from — in Settings, or via config.json's "
                 '`ingest.cookies_from_browser` (e.g. "chrome", "firefox", "edge"). '
                 "You must be signed in to YouTube in that browser, and it must be closed "
-                "while AutoClip downloads."
+                "while Chop Shop downloads."
             )
         return IngestError("YouTube blocked this download with a bot check.", hint=hint)
 
     if "private video" in message or "members-only" in message:
         return IngestError(
             "This video is private or members-only.",
-            hint="AutoClip only downloads content you can access and have the rights to use.",
+            hint="Chop Shop only downloads content you can access and have the rights to use.",
         )
     if "unavailable" in message or "removed" in message:
         return IngestError("This video is unavailable or has been removed.")
     if "drm" in message:
         return IngestError(
             "This content is DRM-protected.",
-            hint="AutoClip does not and will not circumvent DRM.",
+            hint="Chop Shop does not and will not circumvent DRM.",
         )
 
     return IngestError(
@@ -338,6 +372,10 @@ def find_popular_moments(
     VODs usually have no heatmap).
     """
     import yt_dlp
+
+    if is_twitch_url(url):
+        # No replay heatmap or top comments to mine on Twitch.
+        return {"title": "", "duration_s": 0.0, "moments": []}
 
     settings = settings or IngestSettings()
     base = _ytdlp_options(settings) | {"skip_download": True}
@@ -512,7 +550,7 @@ def _probe_and_validate(path: Path) -> ffmpeg.MediaInfo:
         raise IngestError(
             f"{path.name} has no audio track.",
             hint=(
-                "AutoClip finds clips by transcribing speech, so a file with no audio "
+                "Chop Shop finds clips by transcribing speech, so a file with no audio "
                 "has nothing to work from."
             ),
         )

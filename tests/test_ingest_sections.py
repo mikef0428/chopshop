@@ -6,7 +6,7 @@ import subprocess
 from pathlib import Path
 
 import pytest
-from autoclip.pipeline import ffmpeg
+from autoclip.pipeline import ffmpeg, ingest
 from autoclip.pipeline.ingest import (
     IngestError,
     _join_sections,
@@ -90,3 +90,29 @@ def test_heatmap_keeps_only_the_hottest_stretches() -> None:
 
     assert [(m["start_s"], m["end_s"]) for m in moments] == [(50.0, 70.0), (150.0, 160.0)]
     assert moments[0]["source"] == "replays"
+
+
+def test_twitch_vod_links_are_supported():
+    assert ingest.is_supported_url("https://www.twitch.tv/videos/2301234567")
+    assert ingest.twitch_vod_id("https://www.twitch.tv/videos/2301234567") == "2301234567"
+    assert ingest.twitch_vod_id("https://m.twitch.tv/videos/2301234567?t=1h2m") == "2301234567"
+
+
+def test_twitch_channel_and_live_links_are_refused():
+    assert ingest.twitch_vod_id("https://www.twitch.tv/somestreamer") is None
+    assert not ingest.is_supported_url("https://www.twitch.tv/somestreamer")
+    assert not ingest.is_supported_url("https://example.com/videos/1")
+
+
+def test_youtube_links_still_supported():
+    assert ingest.is_supported_url("https://youtu.be/dQw4w9WgXcQ")
+
+
+def test_twitch_channel_link_raises_before_ytdlp():
+    with pytest.raises(ingest.IngestError, match="channel or live"):
+        ingest.ingest_youtube("https://www.twitch.tv/somestreamer")
+
+
+def test_popular_moments_empty_for_twitch():
+    found = ingest.find_popular_moments("https://www.twitch.tv/videos/2301234567")
+    assert found["moments"] == []
