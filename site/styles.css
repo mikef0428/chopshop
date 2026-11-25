@@ -1,0 +1,9 @@
+:root { --bg: #000; --gold: #d4a63a; --text: #f3efe6; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.5 system-ui, sans-serif; }
+header, main > section, footer { max-width: 60rem; margin: 0 auto; padding: 2rem 1rem; }
+h1, h2, h3 { color: var(--gold); }
+a { color: var(--gold); }
+.btn { display: inline-block; padding: .5rem 1rem; border: 1px solid var(--gold); border-radius: 4px; text-decoration: none; }
+.btn.disabled { opacity: .5; cursor: not-allowed; border-style: dashed; }
+img { max-width: 100%; height: auto; }
