@@ -264,3 +264,9 @@ main > section + section { border-top: 1px solid var(--line); }
   html { scroll-behavior: auto; }
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
+
+/* long-form legal pages */
+.legal { max-width: 46rem; }
+.legal h2 { font-size: 1.25rem; margin: 2rem 0 .5rem; }
+.legal p, .legal li { line-height: 1.65; }
+.draft-note { border: 1px solid var(--gold); padding: .75rem 1rem; color: var(--gold); }

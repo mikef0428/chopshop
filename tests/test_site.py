@@ -45,3 +45,10 @@ def test_prices_and_branding():
     ):
         assert price in html, f"missing price {price}"
     assert "AutoClip" not in html
+
+
+def test_legal_pages_have_draft_notice():
+    for name in ("terms.html", "privacy.html"):
+        html = (SITE / name).read_text(encoding="utf-8")
+        assert "Draft &mdash; not yet reviewed by a lawyer" in html or "Draft — not yet reviewed by a lawyer" in html
+        assert "AutoClip" not in html
