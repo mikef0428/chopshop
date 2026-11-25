@@ -101,8 +101,8 @@ def slugify(text: str, *, max_length: int = 60) -> str:
 # --------------------------------------------------------------------------
 
 
-def _ytdlp_options(settings: IngestSettings) -> dict:
-    """Options every YouTube request shares: quiet, cookies, JS runtimes."""
+def _ytdlp_options(settings: IngestSettings, url: str) -> dict:
+    """Options every request shares: quiet, JS runtimes, and (YouTube only) cookies."""
     options: dict = {
         "quiet": True,
         "no_warnings": True,
@@ -111,7 +111,7 @@ def _ytdlp_options(settings: IngestSettings) -> dict:
         # Deno by default; Node is far more commonly installed, so allow both.
         "js_runtimes": {"deno": {}, "node": {}},
     }
-    if settings.cookies_from_browser:
+    if settings.cookies_from_browser and is_youtube_url(url):
         # yt-dlp expects a tuple; only the browser name is required.
         options["cookiesfrombrowser"] = (settings.cookies_from_browser,)
     return options
@@ -166,7 +166,7 @@ def ingest_youtube(
         if total and done:
             on_progress(min(1.0, done / total))
 
-    options = _ytdlp_options(settings) | {
+    options = _ytdlp_options(settings, url) | {
         "format": settings.ytdlp_format,
         "outtmpl": str(target_dir / "source.%(ext)s"),
         "merge_output_format": "mp4",
@@ -263,7 +263,8 @@ def _translate_ytdlp_error(
             hint=(
                 "Check that the past broadcast still exists and is public. Twitch deletes "
                 "past broadcasts after a while. If it keeps failing, run "
-                "`chopshop update-ytdlp`."
+                "`chopshop update-ytdlp`.\n\n"
+                f"Original error: {exc}"
             ),
         )
 
@@ -390,7 +391,7 @@ def find_popular_moments(
         return {"title": "", "duration_s": 0.0, "moments": []}
 
     settings = settings or IngestSettings()
-    base = _ytdlp_options(settings) | {"skip_download": True}
+    base = _ytdlp_options(settings, url) | {"skip_download": True}
 
     try:
         with yt_dlp.YoutubeDL(base) as ydl:

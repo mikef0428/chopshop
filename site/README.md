@@ -24,7 +24,6 @@ Open `site/config.js`. Put each value between the quotes.
 
 | Key | What goes in it | If left empty, a visitor sees |
 |---|---|---|
-| `contactEmail` | Your public contact email address. | "address coming soon" in the footer and on the legal pages. |
 | `discordUrl` | Invite link to your Discord server. Not used by any page yet; safe to fill in or leave empty. | Nothing changes. |
 | `freeClipUrl` | Where people ask for a free clip (Discord invite or a form). | The "Get my free clip" buttons say "Coming soon". |
 | `links.clip` | Payment Link for a single clip. | "Buy one" says "Coming soon". |
@@ -61,7 +60,7 @@ Managed ($149 per month) has no public Payment Link. Customers contact you inste
     - Field 2 label: `Stream link (YouTube or Twitch VOD)`
   - [ ] Turn on the box where the customer must agree to your terms of service. Follow Stripe's documentation for where the terms of service URL is set. Use the address of your `terms.html` page once the site is live (steps 3 and 4). If it is not live yet, finish the link later.
 - [ ] **1b. Make one test purchase** with a test-mode link (see Stripe's documentation for test mode). Confirm where the two field answers appear in your Stripe Dashboard.
-- [ ] **1c. Switch to live mode and create the same five products and five Payment Links again.** Test-mode links do not take real money, so the live ones are the ones the site needs. Copy each live link.
+- [ ] **1c. Switch to live mode and create the same five products and five Payment Links again.** Test-mode links do not take real money, so the live ones are the ones the site needs. Copy each live link. Give each live link the same two required fields and the terms box as the test ones.
 - [ ] **1d. Paste the five LIVE-mode links into `site/config.js`.** Do not use the test-mode ones.
 
 ```js
@@ -75,7 +74,7 @@ links: {
 ```
 
 - [ ] **1e. Set `managedUrl`** to a way to reach you, for example `"mailto:you@example.com"` or your Discord invite link.
-- [ ] **1f. Set `contactEmail`** to the address you want to show in the footer.
+- [ ] **1f. Contact address:** replace the text `address coming soon` in the footers of index.html, terms.html and privacy.html with a mailto link to your address.
 - [ ] **1g. Check the buttons on the local preview** (see "Preview the site on your computer" above). The five buy buttons and the Managed button should now be clickable instead of saying "Coming soon".
 
 ### 2. Free clips
@@ -130,10 +129,13 @@ No entries means the examples section stays hidden. That is fine.
 
 1. A customer clicks a buy button and pays on Stripe.
 2. The payment is recorded in your Stripe Dashboard, with the two answers the customer typed: their channel link and their stream link. If you want an email for each payment, turn on Stripe's payment notification emails in your Stripe settings.
-3. You run that stream in the local Chop Shop app.
-4. You send the finished clips back to the customer.
+3. Open the stream link and confirm it is on the channel the customer gave. If it is not their channel, do not run it, and refund the order.
+4. You run that stream in the local Chop Shop app.
+5. You send the finished clips back to the customer.
 
 Free-clip requests come to wherever `freeClipUrl` points (your Discord or form) and are handled the same way from step 3.
+
+Returning customers send each new stream link to the contact address in the footer, and say which channel it is for. Handle it the same way from step 3.
 
 ## Rules
 

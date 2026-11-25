@@ -52,3 +52,8 @@ def test_legal_pages_have_draft_notice():
         html = (SITE / name).read_text(encoding="utf-8")
         assert "Draft &mdash; not yet reviewed by a lawyer" in html or "Draft — not yet reviewed by a lawyer" in html
         assert "AutoClip" not in html
+
+
+def test_every_page_has_contact_line():
+    for page in SITE.glob("*.html"):
+        assert "Contact:" in page.read_text(encoding="utf-8"), page.name

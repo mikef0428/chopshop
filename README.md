@@ -8,7 +8,7 @@ Fork of AutoClip by Jad Ghazi ([artbyjazi/autoclip](https://github.com/artbyjazi
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Python 3.11 | 3.12](https://img.shields.io/badge/python-3.11%20%7C%203.12-blue.svg)](https://www.python.org/)
 
-Paste a YouTube link or drop a file. Chop Shop transcribes it, uses an LLM to find the moments worth clipping, reframes them to vertical while tracking whoever is speaking, burns in animated captions, and exports platform-ready MP4s.
+Paste a YouTube or Twitch VOD link or drop a file. Chop Shop transcribes it, uses an LLM to find the moments worth clipping, reframes them to vertical while tracking whoever is speaking, burns in animated captions, and exports platform-ready MP4s.
 
 No accounts. No uploads to anyone's servers. No watermarks. No subscription.
 

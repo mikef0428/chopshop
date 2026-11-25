@@ -88,7 +88,7 @@ def fetch_chat(
     from .ingest import _ytdlp_options
 
     settings = settings or IngestSettings()
-    with yt_dlp.YoutubeDL(_ytdlp_options(settings)) as ydl:
+    with yt_dlp.YoutubeDL(_ytdlp_options(settings, url)) as ydl:
         ie = ydl.get_info_extractor("Youtube")
         video_id = ie._match_id(url)
         page = ie._download_webpage(url, video_id, note=False)
@@ -178,7 +178,7 @@ def comment_messages(
 
     from .ingest import _MAX_STAMPS_PER_COMMENT, _TIMESTAMP, _ytdlp_options
 
-    options = _ytdlp_options(settings or IngestSettings()) | {
+    options = _ytdlp_options(settings or IngestSettings(), url) | {
         "skip_download": True,
         "getcomments": True,
         "extractor_args": {

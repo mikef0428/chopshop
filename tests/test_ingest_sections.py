@@ -127,6 +127,18 @@ def test_twitch_error_never_mentions_youtube():
     )
     assert "youtube" not in str(err).lower()
     assert str(err).startswith("Twitch refused this download.")
+    assert "This content isn't available" in str(err)
+
+
+def test_cookies_only_for_youtube_urls():
+    from autoclip.config import IngestSettings
+
+    s = IngestSettings(cookies_from_browser="chrome")
+    assert "cookiesfrombrowser" not in ingest._ytdlp_options(
+        s, "https://www.twitch.tv/videos/123"
+    )
+    yt = ingest._ytdlp_options(s, "https://youtu.be/dQw4w9WgXcQ")
+    assert yt["cookiesfrombrowser"] == ("chrome",)
 
 
 @pytest.mark.parametrize(

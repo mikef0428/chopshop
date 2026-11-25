@@ -18,15 +18,6 @@
     }
   });
 
-  if (cfg.contactEmail) {
-    document.querySelectorAll("[data-contact]").forEach(function (el) {
-      var a = document.createElement("a");
-      a.href = "mailto:" + cfg.contactEmail;
-      a.textContent = cfg.contactEmail;
-      el.replaceChildren(a);
-    });
-  }
-
   if (!(cfg.examples && cfg.examples.length)) {
     document.querySelectorAll('[data-requires="examples"]').forEach(function (el) {
       el.remove();
