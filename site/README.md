@@ -25,14 +25,14 @@ Open `site/config.js`. Put each value between the quotes.
 | Key | What goes in it | If left empty, a visitor sees |
 |---|---|---|
 | `contactEmail` | Your public contact email address. | "address coming soon" in the footer and on the legal pages. |
-| `discordUrl` | Invite link to your Discord server. | Nothing uses it yet beyond the config. |
+| `discordUrl` | Invite link to your Discord server. Not used by any page yet; safe to fill in or leave empty. | Nothing changes. |
 | `freeClipUrl` | Where people ask for a free clip (Discord invite or a form). | The "Get my free clip" buttons say "Coming soon". |
 | `links.clip` | Payment Link for a single clip. | "Buy one" says "Coming soon". |
 | `links.pack10` | Payment Link for the pack of 10. | "Buy 10" says "Coming soon". |
 | `links.pack30` | Payment Link for the pack of 30. | "Buy 30" says "Coming soon". |
 | `links.starter` | Payment Link for Starter. | "Start Starter" says "Coming soon". |
 | `links.pro` | Payment Link for Pro. | "Go Pro" says "Coming soon". |
-| `managedUrl` | A way to contact you about Managed: a `mailto:you@example.com` link or a Discord invite. | The Managed button says "Coming soon". |
+| `managedUrl` | A way to contact you about Managed: a `mailto:you@example.com` link or a Discord invite. | The "By invitation — ask us" button is replaced by "Coming soon". |
 | `examples` | Real clips you may show. See step 5. | The examples section is hidden. |
 
 ## Launch steps
@@ -60,9 +60,9 @@ Managed ($149 per month) has no public Payment Link. Customers contact you inste
   - [ ] Add two custom text fields and make both required.
     - Field 1 label: `Your channel link`
     - Field 2 label: `Stream link (YouTube or Twitch VOD)`
-  - [ ] Turn on the box where the customer must agree to your terms of service. Stripe will ask for a terms page address. Use the address of your `terms.html` page once the site is live (step 3 and 4). If it is not live yet, finish the link later.
+  - [ ] Turn on the box where the customer must agree to your terms of service. Follow Stripe's documentation for where the terms of service URL is set. Use the address of your `terms.html` page once the site is live (steps 3 and 4). If it is not live yet, finish the link later.
   - [ ] Copy the link Stripe gives you.
-- [ ] **1c. Paste the five links into `site/config.js`:**
+- [ ] **1c. Paste the five links into `site/config.js`.** Use the LIVE-mode Payment Link URLs, not the test-mode ones. Test-mode links do not take real money.
 
 ```js
 links: {
@@ -76,7 +76,7 @@ links: {
 
 - [ ] **1d. Set `managedUrl`** to a way to reach you, for example `"mailto:you@example.com"` or your Discord invite link.
 - [ ] **1e. Set `contactEmail`** to the address you want to show in the footer.
-- [ ] **1f. Test a purchase** with Stripe's test mode first (see Stripe's documentation), then switch to live mode and repeat for real.
+- [ ] **1f. Make one test-mode purchase** (see Stripe's documentation for test mode) and confirm where the two field answers appear in your Stripe Dashboard before going live. Then create the live-mode links and use those in step 1c.
 
 ### 2. Free clips
 
@@ -88,7 +88,7 @@ links: {
 
 - [ ] Put the website on a static host. Cloudflare Pages works. Follow Cloudflare's current documentation for the exact clicks (search for "Cloudflare Pages Git integration").
 - [ ] Connect your own GitHub repository (the one the `fork` remote points to, not the original).
-- [ ] Pick the branch to publish.
+- [ ] Pick the branch to publish. The site was built on the branch `chop-shop-site`. Either merge that branch into the branch your host publishes from, or point the host at the branch that contains the `site/` folder. Do this before deploying.
 - [ ] Set the build command to empty (nothing).
 - [ ] Set the output directory to `site`.
 - [ ] Save and wait for the first deploy. Open the address it gives you and check the page loads.
@@ -100,7 +100,7 @@ Every time you push a change to that branch, the site updates.
 - [ ] Buy a domain name from any registrar.
 - [ ] Add it to your Cloudflare Pages project and point it at the site. Follow Cloudflare's current documentation for custom domains.
 - [ ] Open the domain and check the site loads.
-- [ ] If you finished Stripe links before the domain existed, go back and set the terms page address on each Payment Link.
+- [ ] If you finished Stripe links before the domain existed, go back and set the terms of service URL on each Payment Link (see Stripe's documentation).
 
 ### 5. Examples (only with written permission)
 
@@ -129,7 +129,7 @@ No entries means the examples section stays hidden. That is fine.
 ## How an order reaches you
 
 1. A customer clicks a buy button and pays on Stripe.
-2. Stripe emails you the payment. The email includes the two fields the customer filled in: their channel link and their stream link.
+2. The payment is recorded in your Stripe Dashboard, with the two answers the customer typed: their channel link and their stream link. If you want an email for each payment, turn on Stripe's payment notification emails in your Stripe settings.
 3. You run that stream in the local Chop Shop app.
 4. You send the finished clips back to the customer.
 
