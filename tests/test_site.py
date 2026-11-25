@@ -13,6 +13,8 @@ class _Refs(HTMLParser):
         for name, value in attrs:
             if name in ("href", "src") and value:
                 self.refs.append(value)
+            elif name == "srcset" and value:
+                self.refs += [e.split()[0] for e in value.split(",") if e.strip()]
 
 
 def test_local_links_resolve():
