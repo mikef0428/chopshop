@@ -1,4 +1,4 @@
-# AutoClip architecture
+# Chop Shop architecture
 
 A single Python process serving a REST API and a compiled React bundle on one
 port, with a pipeline that turns long video into short clips.

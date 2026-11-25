@@ -45,6 +45,9 @@ def source() -> Source:
 
 
 class TestHealthAndSystem:
+    def test_api_is_branded_chop_shop(self, client: TestClient) -> None:
+        assert client.get("/openapi.json").json()["info"]["title"] == "Chop Shop"
+
     def test_health(self, client: TestClient) -> None:
         response = client.get("/api/health")
 

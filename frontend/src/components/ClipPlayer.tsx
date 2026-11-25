@@ -265,7 +265,7 @@ async function measureOutputLevel(element: HTMLVideoElement): Promise<AudioCheck
     return {
       ok: false,
       peakDb: null,
-      detail: 'This video exposes no audio track at all — that is a problem in AutoClip.',
+      detail: 'This video exposes no audio track at all — that is a problem in Chop Shop.',
     }
   }
 

@@ -59,7 +59,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     else:
         log.info("Job worker disabled by %s=1.", ENV_NO_WORKER)
 
-    log.info("AutoClip %s ready. Artifacts in %s", __version__, paths.root())
+    log.info("Chop Shop %s ready. Artifacts in %s", __version__, paths.root())
 
     try:
         yield
@@ -70,7 +70,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 
 def create_app() -> FastAPI:
     app = FastAPI(
-        title="AutoClip",
+        title="Chop Shop",
         version=__version__,
         description="Local-first AI video clipper.",
         lifespan=lifespan,

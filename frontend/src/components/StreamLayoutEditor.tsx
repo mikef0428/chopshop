@@ -167,7 +167,7 @@ export function StreamLayoutEditor({ sourceId, t }: { sourceId: string; t: numbe
             ? 'Using boxes you drew.'
             : 'Using the auto-detected streamer box. Redraw it if it looks off.'}{' '}
         The gameplay box is cropped to fit under the camera. Keep the game&apos;s own subtitles
-        outside it; AutoClip adds its own captions.
+        outside it; Chop Shop adds its own captions.
       </p>
 
       {error && <ErrorNote error={error} onDismiss={() => setError(null)} />}

@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "autoclip"
 version = "0.1.0.dev0"
-description = "Open-source, local-first AI video clipper — long video in, caption-burned 9:16 clips out."
+description = "Chop Shop: open-source, local-first AI video clipper. Long video in, caption-burned 9:16 clips out."
 readme = "README.md"
 license = { file = "LICENSE" }
 authors = [{ name = "Jad Ghazi" }]
@@ -87,12 +87,13 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/artbyjazi/autoclip"
-Repository = "https://github.com/artbyjazi/autoclip"
-Issues = "https://github.com/artbyjazi/autoclip/issues"
+Homepage = "https://github.com/mikef0428/autoclip"
+Repository = "https://github.com/mikef0428/autoclip"
+Issues = "https://github.com/mikef0428/autoclip/issues"
 
 [project.scripts]
 autoclip = "autoclip.cli:app"
+chopshop = "autoclip.cli:app"
 
 [tool.hatch.build.targets.wheel]
 packages = ["backend/autoclip"]

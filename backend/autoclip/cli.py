@@ -14,8 +14,8 @@ from rich.text import Text
 from . import __version__, config, paths, system
 
 app = typer.Typer(
-    name="autoclip",
-    help="Turn long video into caption-burned 9:16 clips — locally.",
+    name="chopshop",
+    help="Chop Shop: turn long video into caption-burned 9:16 clips — locally.",
     no_args_is_help=True,
     add_completion=False,
 )
@@ -62,7 +62,7 @@ def _ffmpeg_install_hint() -> str:
 
 @app.command()
 def version() -> None:
-    """Print the AutoClip version."""
+    """Print the Chop Shop version."""
     console.print(f"autoclip {__version__}")
 
 
@@ -76,7 +76,7 @@ def doctor() -> None:
     console.print(
         Panel.fit(
             Text.from_markup(
-                f"[bold]AutoClip {__version__}[/bold]\n{report.platform}\nHome: {paths.root()}"
+                f"[bold]Chop Shop {__version__}[/bold]\n{report.platform}\nHome: {paths.root()}"
             ),
             border_style="cyan",
         )
@@ -141,7 +141,7 @@ def doctor() -> None:
         if not ff.has_libass or "ass" in missing:
             remediation.append(
                 "This ffmpeg build has no libass, so captions cannot be burned in — "
-                f"which is most of what AutoClip does.\n{_ffmpeg_install_hint()}"
+                f"which is most of what Chop Shop does.\n{_ffmpeg_install_hint()}"
             )
 
     console.print()
@@ -235,7 +235,7 @@ def doctor() -> None:
     ):
         if missing:
             remediation.append(
-                f"[cyan]{extra}[/cyan] is not installed — reinstall AutoClip's core "
+                f"[cyan]{extra}[/cyan] is not installed — reinstall Chop Shop's core "
                 "dependencies with [cyan]uv pip install -e '.[dev]'[/cyan]."
             )
 
@@ -336,7 +336,7 @@ def doctor() -> None:
     raise typer.Exit(0 if report.ready else 1)
 
 
-config_app = typer.Typer(help="Inspect and modify AutoClip settings.", no_args_is_help=True)
+config_app = typer.Typer(help="Inspect and modify Chop Shop settings.", no_args_is_help=True)
 app.add_typer(config_app, name="config")
 
 
@@ -395,7 +395,7 @@ def config_delete_secret(key: str = typer.Argument(..., help="Secret to remove."
 
 @app.command()
 def init() -> None:
-    """Create the AutoClip home directory and initialise the database."""
+    """Create the Chop Shop home directory and initialise the database."""
     from . import db
 
     version_applied = db.init()
@@ -637,7 +637,7 @@ def serve(
         True, "--open/--no-open", help="Open a browser once the server is up."
     ),
 ) -> None:
-    """Start the AutoClip web app."""
+    """Start the Chop Shop web app."""
     import threading
     import webbrowser
 
@@ -656,11 +656,11 @@ def serve(
         )
 
     url = f"http://{'localhost' if host in ('127.0.0.1', '0.0.0.0') else host}:{port}"
-    console.print(f"[green]AutoClip[/green] starting on [cyan]{url}[/cyan]")
+    console.print(f"[green]Chop Shop[/green] starting on [cyan]{url}[/cyan]")
 
     if host == "0.0.0.0":  # noqa: S104
         console.print(
-            "[yellow]Binding to 0.0.0.0 exposes AutoClip to your whole network.[/yellow] "
+            "[yellow]Binding to 0.0.0.0 exposes Chop Shop to your whole network.[/yellow] "
             "There is no authentication — only do this on a network you trust."
         )
 
