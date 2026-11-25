@@ -53,16 +53,16 @@ Create these five products. Follow Stripe's current documentation for the exact 
 | `starter` | Starter | $9 per month | Recurring monthly |
 | `pro` | Pro | $19 per month | Recurring monthly |
 
-Managed ($149 per month) has no public Payment Link. Customers contact you instead (see step 1d).
+Managed ($149 per month) has no public Payment Link. Customers contact you instead (see step 1e).
 
-- [ ] **1a. Create the five products** with the prices above.
-- [ ] **1b. Create one Payment Link for each product.** On every link:
+- [ ] **1a. In Stripe test mode, create the five products** with the prices above, and **one Payment Link for each product**. On every link:
   - [ ] Add two custom text fields and make both required.
     - Field 1 label: `Your channel link`
     - Field 2 label: `Stream link (YouTube or Twitch VOD)`
   - [ ] Turn on the box where the customer must agree to your terms of service. Follow Stripe's documentation for where the terms of service URL is set. Use the address of your `terms.html` page once the site is live (steps 3 and 4). If it is not live yet, finish the link later.
-  - [ ] Copy the link Stripe gives you.
-- [ ] **1c. Paste the five links into `site/config.js`.** Use the LIVE-mode Payment Link URLs, not the test-mode ones. Test-mode links do not take real money.
+- [ ] **1b. Make one test purchase** with a test-mode link (see Stripe's documentation for test mode). Confirm where the two field answers appear in your Stripe Dashboard.
+- [ ] **1c. Switch to live mode and create the same five products and five Payment Links again.** Test-mode links do not take real money, so the live ones are the ones the site needs. Copy each live link.
+- [ ] **1d. Paste the five LIVE-mode links into `site/config.js`.** Do not use the test-mode ones.
 
 ```js
 links: {
@@ -74,9 +74,9 @@ links: {
 },
 ```
 
-- [ ] **1d. Set `managedUrl`** to a way to reach you, for example `"mailto:you@example.com"` or your Discord invite link.
-- [ ] **1e. Set `contactEmail`** to the address you want to show in the footer.
-- [ ] **1f. Make one test-mode purchase** (see Stripe's documentation for test mode) and confirm where the two field answers appear in your Stripe Dashboard before going live. Then create the live-mode links and use those in step 1c.
+- [ ] **1e. Set `managedUrl`** to a way to reach you, for example `"mailto:you@example.com"` or your Discord invite link.
+- [ ] **1f. Set `contactEmail`** to the address you want to show in the footer.
+- [ ] **1g. Check the buttons on the local preview** (see "Preview the site on your computer" above). The five buy buttons and the Managed button should now be clickable instead of saying "Coming soon".
 
 ### 2. Free clips
 
