@@ -404,7 +404,9 @@ def init() -> None:
 
 @app.command()
 def clip(
-    target: str = typer.Argument(..., help="A YouTube or Twitch VOD URL, or a path to a local media file."),
+    target: str = typer.Argument(
+        ..., help="A YouTube or Twitch VOD URL, or a path to a local media file."
+    ),
     provider: str = typer.Option("", "--provider", "-p", help="Override the active provider."),
     model: str = typer.Option("", "--whisper-model", help="Override the Whisper model."),
     max_clips: int = typer.Option(0, "--max-clips", "-n", help="Override the clip count."),

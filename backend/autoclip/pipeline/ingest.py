@@ -191,7 +191,7 @@ def ingest_youtube(
         }  # fmt: skip
         # One file per section, named so they sort in timeline order.
         options["outtmpl"] = str(target_dir / "section_%(section_start)09d.%(ext)s")
-    if settings.prefer_youtube_captions and not sections:
+    if settings.prefer_youtube_captions and is_youtube_url(url) and not sections:
         # Captions would be timed against the full video, not the joined sections.
         options["writeautomaticsub"] = True
         options["subtitleslangs"] = ["en.*"]
@@ -202,7 +202,7 @@ def ingest_youtube(
             metadata = ydl.extract_info(url, download=True)
     except yt_dlp.utils.DownloadError as exc:
         shutil.rmtree(target_dir, ignore_errors=True)
-        raise _translate_ytdlp_error(exc, settings) from exc
+        raise _translate_ytdlp_error(exc, settings, url) from exc
     except Exception as exc:
         shutil.rmtree(target_dir, ignore_errors=True)
         raise IngestError(f"Could not download {url}: {exc}") from exc
@@ -251,9 +251,21 @@ def ingest_youtube(
     )
 
 
-def _translate_ytdlp_error(exc: Exception, settings: IngestSettings) -> IngestError:
+def _translate_ytdlp_error(
+    exc: Exception, settings: IngestSettings, url: str = ""
+) -> IngestError:
     """Turn a yt-dlp failure into something the user can act on."""
     message = str(exc).lower()
+
+    if is_twitch_url(url):
+        return IngestError(
+            "Twitch refused this download.",
+            hint=(
+                "Check that the past broadcast still exists and is public. Twitch deletes "
+                "past broadcasts after a while. If it keeps failing, run "
+                "`chopshop update-ytdlp`."
+            ),
+        )
 
     if any(marker in message for marker in _BOT_CHECK_MARKERS):
         if settings.cookies_from_browser:

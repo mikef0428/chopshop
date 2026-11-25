@@ -116,3 +116,29 @@ def test_twitch_channel_link_raises_before_ytdlp():
 def test_popular_moments_empty_for_twitch():
     found = ingest.find_popular_moments("https://www.twitch.tv/videos/2301234567")
     assert found["moments"] == []
+
+
+def test_twitch_error_never_mentions_youtube():
+    from autoclip.config import IngestSettings
+
+    exc = RuntimeError("This content isn't available")
+    err = ingest._translate_ytdlp_error(
+        exc, IngestSettings(), "https://www.twitch.tv/videos/123"
+    )
+    assert "youtube" not in str(err).lower()
+    assert str(err).startswith("Twitch refused this download.")
+
+
+@pytest.mark.parametrize(
+    ("url", "vod"),
+    [
+        ("https://nottwitch.tv/videos/1", None),
+        ("https://twitch.tv.evil.com/videos/1", None),
+        ("https://WWW.TWITCH.TV/videos/123", "123"),
+        ("https://www.twitch.tv/videos/123/", "123"),
+        ("https://www.twitch.tv/videos/", None),
+    ],
+)
+def test_twitch_edge_urls(url, vod):
+    assert ingest.twitch_vod_id(url) == vod
+    assert ingest.is_supported_url(url) == (vod is not None)
