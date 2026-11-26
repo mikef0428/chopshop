@@ -12,16 +12,16 @@ import subprocess
 from pathlib import Path
 
 import pytest
-from autoclip.config import ExportSettings
-from autoclip.pipeline import captions, export, ffmpeg
-from autoclip.pipeline.reframe.croppath import (
+from chopshop.config import ExportSettings
+from chopshop.pipeline import captions, export, ffmpeg
+from chopshop.pipeline.reframe.croppath import (
     CropKeyframe,
     CropPath,
     CropSegment,
     Strategy,
     centre_crop,
 )
-from autoclip.pipeline.transcript import Word
+from chopshop.pipeline.transcript import Word
 
 pytestmark = pytest.mark.slow
 

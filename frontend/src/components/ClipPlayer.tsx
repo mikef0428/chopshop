@@ -2,9 +2,9 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { formatTimecode, type CaptionStyle, type CropPath, type Word } from '../api'
 
-const VOLUME_KEY = 'autoclip.volume'
+const VOLUME_KEY = 'chopshop.volume'
 
-/** Output shapes, matching autoclip.pipeline.export.RATIOS. */
+/** Output shapes, matching chopshop.pipeline.export.RATIOS. */
 const ASPECTS: Record<string, [number, number]> = {
   '9:16': [9, 16],
   '1:1': [1, 1],

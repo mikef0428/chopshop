@@ -6,8 +6,8 @@ import subprocess
 from pathlib import Path
 
 import pytest
-from autoclip.pipeline import ffmpeg, ingest
-from autoclip.pipeline.ingest import (
+from chopshop.pipeline import ffmpeg, ingest
+from chopshop.pipeline.ingest import (
     IngestError,
     _join_sections,
     moments_from_comments,
@@ -119,7 +119,7 @@ def test_popular_moments_empty_for_twitch():
 
 
 def test_twitch_error_never_mentions_youtube():
-    from autoclip.config import IngestSettings
+    from chopshop.config import IngestSettings
 
     exc = RuntimeError("This content isn't available")
     err = ingest._translate_ytdlp_error(
@@ -131,7 +131,7 @@ def test_twitch_error_never_mentions_youtube():
 
 
 def test_cookies_only_for_youtube_urls():
-    from autoclip.config import IngestSettings
+    from chopshop.config import IngestSettings
 
     s = IngestSettings(cookies_from_browser="chrome")
     assert "cookiesfrombrowser" not in ingest._ytdlp_options(

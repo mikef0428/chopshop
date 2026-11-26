@@ -1,6 +1,6 @@
-"""CRUD operations over the AutoClip database.
+"""CRUD operations over the Chop Shop database.
 
-Every function opens its own transaction via :func:`autoclip.db.connection`,
+Every function opens its own transaction via :func:`chopshop.db.connection`,
 so callers don't manage commits. Functions are synchronous; async callers should
 wrap them in ``asyncio.to_thread``.
 """

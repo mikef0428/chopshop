@@ -7,7 +7,7 @@ on macOS, Secret Service on Linux.
 
 If no keyring backend is available (headless Linux, some Docker images), we fall
 back to writing secrets into ``config.json`` with restrictive permissions and
-set :attr:`Settings.insecure_secret_storage` so the UI and ``autoclip doctor``
+set :attr:`Settings.insecure_secret_storage` so the UI and ``chopshop doctor``
 can warn about it. Silently downgrading security without telling the user is the
 thing we're trying to avoid.
 """
@@ -28,7 +28,7 @@ from . import paths
 
 log = logging.getLogger(__name__)
 
-KEYRING_SERVICE = "autoclip"
+KEYRING_SERVICE = "chopshop"
 
 #: Keyring service used before the rename. Read from as a fallback so keys
 #: stored under the old name aren't silently lost; writes always use the new one.
@@ -197,7 +197,7 @@ def get_secret(key: str, settings: Settings | None = None) -> str | None:
 
     ``key`` is a provider name for API keys, or :data:`HF_TOKEN_KEY`.
     """
-    env_override = os.environ.get(f"AUTOCLIP_{key.upper()}_KEY")
+    env_override = os.environ.get(f"CHOPSHOP_{key.upper()}_KEY")
     if env_override:
         return env_override
 

@@ -1,7 +1,7 @@
-"""Filesystem layout for AutoClip artifacts.
+"""Filesystem layout for Chop Shop artifacts.
 
-Everything AutoClip writes lives under a single root (``~/.autoclip`` by
-default). The root is resolved through ``AUTOCLIP_HOME`` so tests — and users
+Everything Chop Shop writes lives under a single root (``~/.chopshop`` by
+default). The root is resolved through ``CHOPSHOP_HOME`` so tests — and users
 who keep media on another drive — can relocate it without touching code.
 
 Layout::
@@ -10,7 +10,7 @@ Layout::
       media/            source videos, one directory per source id
       work/<job_id>/    stage intermediates (audio, transcript, crop path)
       exports/          finished clips
-      autoclip.db       SQLite database
+      chopshop.db       SQLite database
       config.json       settings (secrets live in the OS keyring)
 """
 
@@ -22,9 +22,9 @@ from pathlib import Path
 
 log = logging.getLogger(__name__)
 
-ENV_HOME = "AUTOCLIP_HOME"
+ENV_HOME = "CHOPSHOP_HOME"
 
-DEFAULT_DIR_NAME = ".autoclip"
+DEFAULT_DIR_NAME = ".chopshop"
 
 #: The project was called ClipForge before release. An install that predates the
 #: rename has its media, database, and settings under the old name, and media
@@ -34,10 +34,10 @@ LEGACY_DIR_NAME = ".clipforge"
 
 
 def root() -> Path:
-    """Return the AutoClip home directory.
+    """Return the Chop Shop home directory.
 
     Resolved fresh on every call rather than cached at import time, so tests
-    that patch ``AUTOCLIP_HOME`` take effect without reloading the module.
+    that patch ``CHOPSHOP_HOME`` take effect without reloading the module.
     """
     override = os.environ.get(ENV_HOME)
     if override:
@@ -49,7 +49,7 @@ def root() -> Path:
         if legacy.is_dir():
             log.info(
                 "Using the pre-rename data directory %s. Rename it to %s when "
-                "convenient; AutoClip will use whichever it finds.",
+                "convenient; Chop Shop will use whichever it finds.",
                 legacy,
                 default,
             )
@@ -70,7 +70,7 @@ def exports_dir() -> Path:
     return root() / "exports"
 
 
-DB_NAME = "autoclip.db"
+DB_NAME = "chopshop.db"
 LEGACY_DB_NAME = "clipforge.db"
 
 

@@ -1,10 +1,10 @@
 # Chop Shop
 
-Fork of AutoClip by Jad Ghazi ([artbyjazi/autoclip](https://github.com/artbyjazi/autoclip)).
+Based on open-source work by Jad Ghazi, used under the MIT licence (see [LICENSE](LICENSE)).
 
 **Open-source, local-first AI video clipper.** Long video in → ranked, caption-burned, speaker-tracked 9:16 clips out.
 
-[![CI](https://github.com/mikef0428/autoclip/actions/workflows/ci.yml/badge.svg)](https://github.com/mikef0428/autoclip/actions/workflows/ci.yml)
+[![CI](https://github.com/mikef0428/chopshop/actions/workflows/ci.yml/badge.svg)](https://github.com/mikef0428/chopshop/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Python 3.11 | 3.12](https://img.shields.io/badge/python-3.11%20%7C%203.12-blue.svg)](https://www.python.org/)
 
@@ -69,11 +69,11 @@ sudo apt install ffmpeg
 ## Quickstart
 
 ```bash
-git clone https://github.com/mikef0428/autoclip.git
+git clone https://github.com/mikef0428/chopshop.git
 ```
 
 ```bash
-cd autoclip && uv venv --python 3.11 && uv pip install -e ".[dev]"
+cd chopshop && uv venv --python 3.11 && uv pip install -e ".[dev]"
 ```
 
 ```bash
@@ -138,7 +138,6 @@ docker compose -f docker/compose.yaml --profile gpu up --build
 
 Everything the UI does is also on the CLI:
 
-`autoclip` is kept as an alias for every command below.
 
 | command | does |
 |---|---|
@@ -170,7 +169,7 @@ Everything here is a real failure hit during development, not hypothetical.
 
 **Transcription fails with "Library cublas64_12.dll is not found".** The CUDA runtime libraries aren't installed. `uv pip install -e ".[gpu]"`. Chop Shop registers their location itself — pip installs them somewhere the OS loader doesn't search, which is why the error is so unhelpful.
 
-**"Requested int8_float16 compute type, but the target device does not support..."** Clear `whisper.compute_type` in `~/.autoclip/config.json` and let Chop Shop choose. It queries the backend for what's actually supported rather than guessing from your GPU model.
+**"Requested int8_float16 compute type, but the target device does not support..."** Clear `whisper.compute_type` in `~/.chopshop/config.json` and let Chop Shop choose. It queries the backend for what's actually supported rather than guessing from your GPU model.
 
 **Captions don't appear in exports, or ffmpeg says "No such filter: ass".** Your ffmpeg has no libass. `doctor` reports this and prints the right command for your platform. On macOS that means `brew install ffmpeg-full`, not `brew install ffmpeg`; on Windows the full Gyan build, not "essentials".
 
@@ -186,7 +185,7 @@ Everything here is a real failure hit during development, not hypothetical.
 ingest → prepare → transcribe → highlights → reframe → captions → export
 ```
 
-Each stage writes artifacts to `~/.autoclip/work/{job_id}/`, so a retry resumes at the stage that failed rather than starting over. Two decisions carry most of the design:
+Each stage writes artifacts to `~/.chopshop/work/{job_id}/`, so a retry resumes at the stage that failed rather than starting over. Two decisions carry most of the design:
 
 **Highlight detection returns word indices, not timestamps.** Models are unreliable at arithmetic and completely reliable at copying a number they can see. Timing is looked up from measured word timings afterwards.
 
@@ -199,7 +198,7 @@ Each stage writes artifacts to `~/.autoclip/work/{job_id}/`, so a retry resumes 
 **Has been:** the full pipeline on real talking-head footage, asserted end to end — 1080×1920 h264/yuv420p output, AAC at −14 LUFS, crop segments tiling each clip without gaps, captions burned in, framing correctly following a cut to a second speaker. Run it yourself:
 
 ```bash
-AUTOCLIP_E2E_MEDIA=/path/to/clip.mp4 pytest -m e2e
+CHOPSHOP_E2E_MEDIA=/path/to/clip.mp4 pytest -m e2e
 ```
 
 **Hasn't been:** the §6.4 reframe acceptance bar — no visible jitter, no cut-off faces, speaker on screen ≥95% of speaking time — against a fixed three-video golden set. The mechanics have unit coverage, but "looks right on footage I picked" isn't the bar. This is the gate for v0.1.0.
@@ -217,7 +216,7 @@ Deliberate, not oversights:
 
 ## Contributing
 
-Prompts and caption styles are the highest-leverage places to start, and neither needs deep knowledge of the codebase — `backend/autoclip/prompts/highlight_v1.txt` is plain text and affects output quality more than most code changes. See [CONTRIBUTING.md](docs/CONTRIBUTING.md).
+Prompts and caption styles are the highest-leverage places to start, and neither needs deep knowledge of the codebase — `backend/chopshop/prompts/highlight_v1.txt` is plain text and affects output quality more than most code changes. See [CONTRIBUTING.md](docs/CONTRIBUTING.md).
 
 ## Legal
 

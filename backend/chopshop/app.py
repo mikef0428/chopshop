@@ -1,7 +1,7 @@
 """FastAPI application — REST API plus the built frontend, on one port.
 
 Serving the compiled React bundle from the same origin as the API is what keeps
-AutoClip a single process with no CORS configuration, no second port, and no
+Chop Shop a single process with no CORS configuration, no second port, and no
 Node.js at runtime.
 """
 
@@ -25,7 +25,7 @@ from .jobs.queue import queue
 log = logging.getLogger(__name__)
 
 #: Set to "1" to serve the API without starting the background job worker.
-ENV_NO_WORKER = "AUTOCLIP_NO_WORKER"
+ENV_NO_WORKER = "CHOPSHOP_NO_WORKER"
 
 #: Where the built frontend is looked for, in priority order. The first is the
 #: packaged location (inside the wheel); the second is the dev build output.

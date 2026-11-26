@@ -1,6 +1,6 @@
 """Ingestion — YouTube URLs and local file uploads become source records.
 
-Both paths converge on a validated :class:`~autoclip.db.models.Source` with a
+Both paths converge on a validated :class:`~chopshop.db.models.Source` with a
 file on disk and probed metadata.
 
 A note on YouTube: as of 2026 most anonymous downloads hit a bot check, and
@@ -303,7 +303,7 @@ def _translate_ytdlp_error(
         "yt-dlp could not download this video.",
         hint=(
             "YouTube changes frequently and yt-dlp is updated often. Try "
-            "`autoclip update-ytdlp` to pull the latest version.\n\n"
+            "`chopshop update-ytdlp` to pull the latest version.\n\n"
             f"Original error: {exc}"
         ),
     )
@@ -495,7 +495,7 @@ def _find_downloaded_file(directory: Path) -> Path | None:
 
 
 def ingest_file(path: Path, *, move: bool = False, title: str | None = None) -> Source:
-    """Register a local file as a source, copying it into AutoClip's media store.
+    """Register a local file as a source, copying it into Chop Shop's media store.
 
     Copying rather than referencing in place means a job stays reproducible even
     if the user moves or deletes the original.

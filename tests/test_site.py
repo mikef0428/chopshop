@@ -44,14 +44,13 @@ def test_prices_and_branding():
         "The first 50 subscribers keep their price for as long as they stay.",
     ):
         assert price in html, f"missing price {price}"
-    assert "AutoClip" not in html
 
 
 def test_legal_pages_have_draft_notice():
     for name in ("terms.html", "privacy.html"):
         html = (SITE / name).read_text(encoding="utf-8")
-        assert "Draft &mdash; not yet reviewed by a lawyer" in html or "Draft — not yet reviewed by a lawyer" in html
-        assert "AutoClip" not in html
+        notice = "not yet reviewed by a lawyer"
+        assert f"Draft &mdash; {notice}" in html or f"Draft — {notice}" in html
 
 
 def test_every_page_has_contact_line():

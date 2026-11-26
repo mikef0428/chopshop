@@ -1,4 +1,4 @@
-"""AutoClip command-line interface."""
+"""Chop Shop command-line interface."""
 
 from __future__ import annotations
 
@@ -63,7 +63,7 @@ def _ffmpeg_install_hint() -> str:
 @app.command()
 def version() -> None:
     """Print the Chop Shop version."""
-    console.print(f"autoclip {__version__}")
+    console.print(f"chopshop {__version__}")
 
 
 @app.command()
@@ -169,7 +169,7 @@ def doctor() -> None:
         remediation.append(
             "An NVIDIA GPU is present but CTranslate2 can't use it — usually missing cuDNN. "
             "Install the CUDA runtime libraries with "
-            "[cyan]uv pip install 'autoclip[gpu]'[/cyan], then re-run doctor. "
+            "[cyan]uv pip install 'chopshop[gpu]'[/cyan], then re-run doctor. "
             "Transcription will fall back to CPU until this is fixed."
         )
     elif gpu.ctranslate2_cuda:
@@ -224,8 +224,8 @@ def doctor() -> None:
     if not deps.whisperx and settings.whisper.diarization:
         remediation.append(
             "Diarization is enabled in settings but WhisperX isn't installed. "
-            "Run [cyan]uv pip install 'autoclip[diarization]'[/cyan] and set a HuggingFace "
-            "token with [cyan]autoclip config set-secret huggingface_token[/cyan]."
+            "Run [cyan]uv pip install 'chopshop[diarization]'[/cyan] and set a HuggingFace "
+            "token with [cyan]chopshop config set-secret huggingface_token[/cyan]."
         )
 
     for missing, extra in (
@@ -274,7 +274,7 @@ def doctor() -> None:
     ):
         remediation.append(
             "No LLM provider is usable yet. Add an API key with "
-            "[cyan]autoclip config set-secret anthropic[/cyan] (or openai / gemini), "
+            "[cyan]chopshop config set-secret anthropic[/cyan] (or openai / gemini), "
             "or install Ollama for a fully local setup."
         )
 
@@ -321,7 +321,7 @@ def doctor() -> None:
         console.print(
             Panel.fit(
                 "[bold red]Not ready.[/bold red] Resolve the items below, then re-run "
-                "[cyan]autoclip doctor[/cyan].",
+                "[cyan]chopshop doctor[/cyan].",
                 border_style="red",
             )
         )
@@ -671,7 +671,7 @@ def serve(
         threading.Timer(1.5, lambda: webbrowser.open(url)).start()
 
     uvicorn.run(
-        "autoclip.app:app",
+        "chopshop.app:app",
         host=host,
         port=port,
         reload=reload,

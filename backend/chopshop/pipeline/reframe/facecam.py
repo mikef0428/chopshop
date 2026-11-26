@@ -47,7 +47,7 @@ LAYOUT_FILE = "stream_layout.json"
 
 #: The default gameplay box keeps the top of the frame. The bottom fifth holds
 #: the game's own subtitles (one or two lines from ~83% down) and HUD clutter;
-#: AutoClip's captions replace the subtitles, so they are cropped away.
+#: Chop Shop's captions replace the subtitles, so they are cropped away.
 GAME_HEIGHT_FRACTION = 0.8
 
 

@@ -1,40 +1,40 @@
-name: autoclip
+name: chopshop
 
 services:
-  autoclip:
+  chopshop:
     build:
       context: ..
       dockerfile: docker/Dockerfile
       target: base
-    image: autoclip:latest
+    image: chopshop:latest
     ports:
-      # Bound to loopback: AutoClip has no authentication, so it must not be
+      # Bound to loopback: Chop Shop has no authentication, so it must not be
       # reachable from the network by default. Change to "8000:8000" only on a
       # network you trust.
       - '127.0.0.1:8000:8000'
     volumes:
-      - autoclip-data:/data
+      - chopshop-data:/data
       # Drop source files here to ingest them without uploading through the UI.
       - ./media:/media:ro
     environment:
-      AUTOCLIP_HOME: /data
+      CHOPSHOP_HOME: /data
     restart: unless-stopped
 
   # docker compose --profile gpu up
-  autoclip-gpu:
+  chopshop-gpu:
     profiles: ['gpu']
     build:
       context: ..
       dockerfile: docker/Dockerfile
       target: gpu
-    image: autoclip:gpu
+    image: chopshop:gpu
     ports:
       - '127.0.0.1:8000:8000'
     volumes:
-      - autoclip-data:/data
+      - chopshop-data:/data
       - ./media:/media:ro
     environment:
-      AUTOCLIP_HOME: /data
+      CHOPSHOP_HOME: /data
       NVIDIA_VISIBLE_DEVICES: all
     deploy:
       resources:
@@ -46,4 +46,4 @@ services:
     restart: unless-stopped
 
 volumes:
-  autoclip-data:
+  chopshop-data:
