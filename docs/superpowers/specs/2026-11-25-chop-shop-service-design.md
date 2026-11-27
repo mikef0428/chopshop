@@ -31,6 +31,13 @@ must make finding and converting customers concrete. [owner]
 - Posting to TikTok, Instagram or YouTube on the customer's behalf. Customers
   download files. [call: those APIs are approval-gated; revisit after launch]
 - A mobile app, team accounts, or an affiliate system in the product. [call]
+- A downloadable desktop app, including a hybrid one that does the heavy work
+  on the customer's PC. Chop Shop is web-only: customers use a browser and
+  never install anything. [owner, 2026-11-27: a desktop app means more upkeep
+  and customer hand-holding than they want now] Scaling past the owner's PC is
+  therefore done with rented GPUs.
+- Asking customers for their own AI API key. The AI is included in the price.
+  [call, 2026-11-27; owner raised the question and has not objected]
 - Running several videos at once. One GPU, one job at a time, as today. [call]
 - Renaming the Python package or the `~/.autoclip` data folder. [call: this is
   a fork of artbyjazi/autoclip, and an internal rename makes every upstream fix
