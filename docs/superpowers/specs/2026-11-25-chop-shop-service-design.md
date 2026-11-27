@@ -176,11 +176,16 @@ Every tier, free included, gets the same clip-picking model. Tiers differ by
 volume, queue priority and human review, never by clip quality. [owner,
 2026-11-27: "my intent is not to gouge but to provide a viable service"]
 
-Which model that is gets decided by a blind side-by-side test of the local
-model against hosted ones on the owner's past streams. [call] If a hosted
-model wins, it runs under a monthly spending cap set at the provider, and jobs
-fall back to the local model when the cap is reached, so free usage can never
-produce an open-ended bill. [call] Hosted cost is estimated, not measured, at
+That model is a small hosted one. [owner, 2026-11-27: the service has to run
+without the owner, and customers pick their own video in the web app and the
+job runs by itself] A side-by-side test on the owner's past streams picks
+which small hosted model. [call] It runs under a monthly spending cap set at
+the provider; when the cap is reached, new free orders wait until the next
+month while paid orders continue. [call]
+
+Open question raised by "runs without the owner": the hosted model only covers
+clip picking. Transcription, reframing and rendering still need a GPU, which
+in this design is the owner's PC. See the conversation of 2026-11-27. Hosted cost is estimated, not measured, at
 a cent or two per 60-minute stream on a small model and tens of cents on a top
 one.
 Free accounts are capped at one queued VOD at a time and at a maximum VOD
