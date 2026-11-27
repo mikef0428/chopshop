@@ -83,6 +83,26 @@ owner's machine. Rejected.
 A is built so that B is a later move of the worker, not a rebuild: the worker
 only talks to the site over HTTPS, so it can run anywhere.
 
+### Update 2026-11-27: both kinds of worker [owner]
+
+The owner chose a mix of A and B for self-serve: their own machines take
+orders when they are on and marked available, and pay-per-job cloud GPUs take
+everything else, so the service runs with the owner's machines off.
+
+- Routing is instant and invisible to the customer. Each worker sends the site
+  a heartbeat; an order goes to an available owner machine if one is online,
+  otherwise straight to the cloud. No order waits to see who claims it. [call,
+  answering the owner's concern that customers would sit waiting]
+- If an owner machine takes an order and stops sending progress, the order is
+  re-queued to the cloud. [call]
+- Orders are asynchronous by design: the customer submits, sees stage-by-stage
+  progress with an estimate, and is notified when clips are ready. Clips appear
+  as each one finishes rendering, best first. [call]
+- Each owner machine has an available/busy switch. [call]
+- Cloud download of YouTube videos is expected to be blocked; launch is
+  Twitch links plus file upload. [call, untested]
+- No display advertising on the site or dashboard. [call, pending owner]
+
 ## The product, as a customer sees it
 
 1. Lands on chopshop site. Sees what clips do for a channel, real examples from
