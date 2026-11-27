@@ -172,9 +172,17 @@ Used for planning until the owner says otherwise.
 
 ### Cost per job [call]
 
-Customer jobs use the local model (Ollama), the same as the owner's current
-`local-model-progress` work, so a free preview costs queue time and no cash.
-A paid model is offered only on the managed tier, where the price covers it.
+Every tier, free included, gets the same clip-picking model. Tiers differ by
+volume, queue priority and human review, never by clip quality. [owner,
+2026-11-27: "my intent is not to gouge but to provide a viable service"]
+
+Which model that is gets decided by a blind side-by-side test of the local
+model against hosted ones on the owner's past streams. [call] If a hosted
+model wins, it runs under a monthly spending cap set at the provider, and jobs
+fall back to the local model when the cap is reached, so free usage can never
+produce an open-ended bill. [call] Hosted cost is estimated, not measured, at
+a cent or two per 60-minute stream on a small model and tens of cents on a top
+one.
 Free accounts are capped at one queued VOD at a time and at a maximum VOD
 length set after throughput is measured in step 3.
 
