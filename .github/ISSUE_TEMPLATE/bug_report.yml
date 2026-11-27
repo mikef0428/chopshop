@@ -6,14 +6,14 @@ body:
     attributes:
       value: |
         Thanks for the report. The single most useful thing you can include is the
-        output of `autoclip doctor` — most problems in this space come down to an
+        output of `chopshop doctor` — most problems in this space come down to an
         ffmpeg build without libass, a GPU driver mismatch, or Python 3.13, and
         `doctor` identifies all three immediately.
 
   - type: textarea
     id: doctor
     attributes:
-      label: Output of `autoclip doctor`
+      label: Output of `chopshop doctor`
       description: Paste the whole thing. It contains no secrets — keys are never printed.
       render: shell
     validations:

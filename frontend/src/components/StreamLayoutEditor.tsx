@@ -14,7 +14,7 @@ const COLOURS: Record<Which, string> = {
 /**
  * Draw where the streamer's camera and the gameplay sit in a stream recording.
  *
- * AutoClip detects the camera on its own; this is the fallback when it misses.
+ * Chop Shop detects the camera on its own; this is the fallback when it misses.
  * Pick a box, then drag across the frame to draw it. The overlay doesn't move,
  * so the boxes are saved once per video and reused for every clip.
  */
@@ -43,7 +43,7 @@ export function StreamLayoutEditor({ sourceId, t }: { sourceId: string; t: numbe
   if (!size) return error ? <ErrorNote error={error} /> : null
 
   // Matches the server's default: the top 80%, leaving out the game's own
-  // subtitles at the bottom (AutoClip's captions replace them).
+  // subtitles at the bottom (Chop Shop's captions replace them).
   const defaultGame: Box = { x: 0, y: 0, w: size.width, h: Math.round(size.height * 0.8) }
   const current: StreamLayout = layout ?? { cam: { x: 0, y: 0, w: 0, h: 0 }, game: defaultGame }
 
@@ -167,7 +167,7 @@ export function StreamLayoutEditor({ sourceId, t }: { sourceId: string; t: numbe
             ? 'Using boxes you drew.'
             : 'Using the auto-detected streamer box. Redraw it if it looks off.'}{' '}
         The gameplay box is cropped to fit under the camera. Keep the game&apos;s own subtitles
-        outside it; AutoClip adds its own captions.
+        outside it; Chop Shop adds its own captions.
       </p>
 
       {error && <ErrorNote error={error} onDismiss={() => setError(null)} />}

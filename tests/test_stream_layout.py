@@ -4,10 +4,10 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from autoclip.pipeline import captions, export
-from autoclip.pipeline.chat import ChatMessage, _parse_message, pick_card, to_original_time
-from autoclip.pipeline.reframe.croppath import centre_crop
-from autoclip.pipeline.reframe.facecam import Box, StreamLayout, load_layout, save_layout
+from chopshop.pipeline import captions, export
+from chopshop.pipeline.chat import ChatMessage, _parse_message, pick_card, to_original_time
+from chopshop.pipeline.reframe.croppath import centre_crop
+from chopshop.pipeline.reframe.facecam import Box, StreamLayout, load_layout, save_layout
 
 
 def test_sectioned_time_maps_back_to_the_original_stream() -> None:

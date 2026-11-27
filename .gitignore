@@ -23,10 +23,10 @@ frontend/.vite/
 
 # Built frontend, emitted into the Python package by `npm run build`.
 # Regenerated from source; a release build produces it during packaging.
-backend/autoclip/static/
+backend/chopshop/static/
 
-# AutoClip runtime artifacts
-.autoclip/
+# Chop Shop runtime artifacts
+.chopshop/
 *.db
 *.sqlite3
 

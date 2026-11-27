@@ -1,11 +1,11 @@
 name: Feature request
-description: Suggest something AutoClip should do
+description: Suggest something Chop Shop should do
 labels: [enhancement]
 body:
   - type: markdown
     attributes:
       value: |
-        Before writing: the [non-goals](https://github.com/artbyjazi/autoclip#non-goals)
+        Before writing: the [non-goals](https://github.com/artbyjazi/chopshop#non-goals)
         are deliberate. Direct posting to platforms and a full timeline editor are
         both out of scope on purpose, not oversights.
 

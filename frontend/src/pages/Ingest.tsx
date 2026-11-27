@@ -83,7 +83,7 @@ export function Ingest() {
               <input
                 id="url"
                 className="field font-display text-xl md:text-2xl"
-                placeholder="https://youtube.com/watch?v=…"
+                placeholder="YouTube or Twitch VOD link"
                 value={url}
                 onChange={(e) => {
                   setUrl(e.target.value)

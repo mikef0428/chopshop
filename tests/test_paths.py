@@ -5,11 +5,11 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-from autoclip import paths
+from chopshop import paths
 
 
-def test_home_override_is_honoured(autoclip_home: Path) -> None:
-    assert paths.root() == autoclip_home.resolve()
+def test_home_override_is_honoured(chopshop_home: Path) -> None:
+    assert paths.root() == chopshop_home.resolve()
 
 
 def test_override_is_read_per_call(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -30,7 +30,7 @@ def test_defaults_under_the_user_home(tmp_path: Path, monkeypatch: pytest.Monkey
     monkeypatch.delenv(paths.ENV_HOME, raising=False)
     monkeypatch.setattr(Path, "home", classmethod(lambda cls: tmp_path))
 
-    assert paths.root() == (tmp_path / ".autoclip").resolve()
+    assert paths.root() == (tmp_path / ".chopshop").resolve()
 
 
 class TestLegacyHomeAdoption:
@@ -74,7 +74,7 @@ class TestLegacyHomeAdoption:
         legacy_db = legacy_home / paths.LEGACY_DB_NAME
         legacy_db.write_bytes(b"SQLite format 3\x00")
 
-        # Pointing at a fresh autoclip.db beside it would silently orphan every
+        # Pointing at a fresh chopshop.db beside it would silently orphan every
         # job the user already has.
         assert paths.db_path() == legacy_db
 
@@ -92,14 +92,14 @@ class TestLegacyHomeAdoption:
         assert paths.db_path().name == paths.DB_NAME
 
 
-def test_ensure_layout_creates_the_tree(autoclip_home: Path) -> None:
+def test_ensure_layout_creates_the_tree(chopshop_home: Path) -> None:
     paths.ensure_layout()
 
     for directory in (paths.media_dir(), paths.work_dir(), paths.exports_dir()):
         assert directory.is_dir()
 
 
-def test_ensure_layout_is_idempotent(autoclip_home: Path) -> None:
+def test_ensure_layout_is_idempotent(chopshop_home: Path) -> None:
     paths.ensure_layout()
     marker = paths.media_dir() / "keep.txt"
     marker.write_text("x", encoding="utf-8")
@@ -109,7 +109,7 @@ def test_ensure_layout_is_idempotent(autoclip_home: Path) -> None:
     assert marker.exists()
 
 
-def test_all_artifacts_live_under_the_root(autoclip_home: Path) -> None:
+def test_all_artifacts_live_under_the_root(chopshop_home: Path) -> None:
     root = paths.root()
     derived = [
         paths.media_dir(),
@@ -125,7 +125,7 @@ def test_all_artifacts_live_under_the_root(autoclip_home: Path) -> None:
         assert root in path.parents
 
 
-def test_per_job_and_per_source_directories_are_namespaced(autoclip_home: Path) -> None:
+def test_per_job_and_per_source_directories_are_namespaced(chopshop_home: Path) -> None:
     assert paths.job_work_dir("job123").name == "job123"
     assert paths.job_work_dir("job123").parent == paths.work_dir()
     assert paths.source_media_dir("src456").parent == paths.media_dir()

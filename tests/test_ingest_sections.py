@@ -6,8 +6,8 @@ import subprocess
 from pathlib import Path
 
 import pytest
-from autoclip.pipeline import ffmpeg
-from autoclip.pipeline.ingest import (
+from chopshop.pipeline import ffmpeg, ingest
+from chopshop.pipeline.ingest import (
     IngestError,
     _join_sections,
     moments_from_comments,
@@ -90,3 +90,67 @@ def test_heatmap_keeps_only_the_hottest_stretches() -> None:
 
     assert [(m["start_s"], m["end_s"]) for m in moments] == [(50.0, 70.0), (150.0, 160.0)]
     assert moments[0]["source"] == "replays"
+
+
+def test_twitch_vod_links_are_supported():
+    assert ingest.is_supported_url("https://www.twitch.tv/videos/2301234567")
+    assert ingest.twitch_vod_id("https://www.twitch.tv/videos/2301234567") == "2301234567"
+    assert ingest.twitch_vod_id("https://m.twitch.tv/videos/2301234567?t=1h2m") == "2301234567"
+
+
+def test_twitch_channel_and_live_links_are_refused():
+    assert ingest.twitch_vod_id("https://www.twitch.tv/somestreamer") is None
+    assert not ingest.is_supported_url("https://www.twitch.tv/somestreamer")
+    assert not ingest.is_supported_url("https://example.com/videos/1")
+
+
+def test_youtube_links_still_supported():
+    assert ingest.is_supported_url("https://youtu.be/dQw4w9WgXcQ")
+
+
+def test_twitch_channel_link_raises_before_ytdlp():
+    with pytest.raises(ingest.IngestError, match="channel or live"):
+        ingest.ingest_youtube("https://www.twitch.tv/somestreamer")
+
+
+def test_popular_moments_empty_for_twitch():
+    found = ingest.find_popular_moments("https://www.twitch.tv/videos/2301234567")
+    assert found["moments"] == []
+
+
+def test_twitch_error_never_mentions_youtube():
+    from chopshop.config import IngestSettings
+
+    exc = RuntimeError("This content isn't available")
+    err = ingest._translate_ytdlp_error(
+        exc, IngestSettings(), "https://www.twitch.tv/videos/123"
+    )
+    assert "youtube" not in str(err).lower()
+    assert str(err).startswith("Twitch refused this download.")
+    assert "This content isn't available" in str(err)
+
+
+def test_cookies_only_for_youtube_urls():
+    from chopshop.config import IngestSettings
+
+    s = IngestSettings(cookies_from_browser="chrome")
+    assert "cookiesfrombrowser" not in ingest._ytdlp_options(
+        s, "https://www.twitch.tv/videos/123"
+    )
+    yt = ingest._ytdlp_options(s, "https://youtu.be/dQw4w9WgXcQ")
+    assert yt["cookiesfrombrowser"] == ("chrome",)
+
+
+@pytest.mark.parametrize(
+    ("url", "vod"),
+    [
+        ("https://nottwitch.tv/videos/1", None),
+        ("https://twitch.tv.evil.com/videos/1", None),
+        ("https://WWW.TWITCH.TV/videos/123", "123"),
+        ("https://www.twitch.tv/videos/123/", "123"),
+        ("https://www.twitch.tv/videos/", None),
+    ],
+)
+def test_twitch_edge_urls(url, vod):
+    assert ingest.twitch_vod_id(url) == vod
+    assert ingest.is_supported_url(url) == (vod is not None)
